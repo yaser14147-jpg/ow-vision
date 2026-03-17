@@ -6,16 +6,11 @@ import os
 import json
 import glob
 import ctypes
+import win32api
+import win32con
+import threading
 
-# إخفاء شاشة الـ CMD السوداء بالكامل عن طريق الـ Kernel
-def hide_console():
-    try:
-        hwnd_cmd = ctypes.windll.kernel32.GetConsoleWindow()
-        if hwnd_cmd:
-            ctypes.windll.user32.ShowWindow(hwnd_cmd, 0)
-    except Exception:
-        pass
-hide_console()
+# إيقاف أي كود قد يسبب وميضاً
 
 CONFIG_DIR = r"C:\Users\yaser\Desktop\AI\ow-vision\scripts\configs"
 if not os.path.exists(CONFIG_DIR):
@@ -27,22 +22,34 @@ DEFAULT_CONFIG = {
     "smooth_in": 1.3,
     "smooth_out": 3.8,
     "confidence": 0.30,
-    "trigger_key": "XButton 2"
+    "trigger_key": "XButton 2",
+    "visualize": False,
+    "enable_aim": False
 }
 
 ACTIVE_CFG_PATH = r"C:\Users\yaser\Desktop\AI\ow-vision\scripts\config.json"
 
 def save_active_config(cfg):
-    with open(ACTIVE_CFG_PATH, "w") as f:
-        json.dump(cfg, f, indent=4)
+    try:
+        # تأكد من المسار الصحيح للملف config.json بجانب main.py
+        config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.json")
+        with open(config_path, "w") as f:
+            json.dump(cfg, f, indent=4)
+            f.flush()
+            os.fsync(f.fileno()) # إجبار ويندوز على كتابة الملف فوراً
+    except Exception as e:
+        with open("error_save.txt", "a") as ef:
+            ef.write(f"Error saving config: {e}\n")
 
 def run_detection():
     sys.path.append(os.path.dirname(os.path.abspath(__file__)))
     try:
         from ai.Detection import Detection
         app = Detection()
+        app.start()
     except Exception as e:
-        print(f"Error: {e}")
+        with open("crash_log_detection.txt", "w") as f:
+            f.write(str(e))
 
 TRANSLATIONS = {
     "AR": {
@@ -55,7 +62,9 @@ TRANSLATIONS = {
             ("دقة الذكاء:", "(رقم أقل = رصد واستجابة أسرع)")
         ],
         "profile": "ملف الإعدادات الحالي:",
-        "trigger": "زر تشغيل الإيمبوت:"
+        "trigger": "زر تشغيل الإيمبوت:",
+        "show_aim": "إظهار الإيم",
+        "hide_aim": "إخفاء الإيم"
     },
     "EN": {
         "title": "Config Settings",
@@ -67,7 +76,9 @@ TRANSLATIONS = {
             ("Confidence:", "(Lower = faster AI tracking)")
         ],
         "profile": "Current Config Profile:",
-        "trigger": "Aimbot Trigger Key:"
+        "trigger": "Aimbot Trigger Key:",
+        "show_aim": "Show Aim",
+        "hide_aim": "Hide Aim"
     }
 }
 
@@ -75,27 +86,43 @@ class ClassicAHKUI:
     def __init__(self, root):
         self.root = root
         self.root.title("overwatch-ai")
-        # تم تكبير الطول قليلاً ليسع زر اختيار المفتاح
-        self.root.geometry("340x540")
+        # زيادة الطول للتأكد من ظهور كل العناصر بدون تداخل
+        self.root.geometry("340x560")
         self.root.resizable(False, False)
         
         self.root.wm_attributes("-toolwindow", True)
-        self.root.after(100, self.apply_stealth_capture)
+        self.root.wm_attributes("-topmost", True)  # يخلي البرنامج فوق اللعبة وكل النوافذ غصب
+        
+        # حماية ثلاثية لمنع الفلاش والاختفاء:
+        # 1. البرنامج يبدأ مُنسحب (withdraw)
+        # 2. شفافية صفر (alpha 0)
+        # 3. إخفاء من شريط المهام (toolwindow)
+        self.visible = False
+        self.root.withdraw()
+        self.root.attributes("-alpha", 0.0) 
+        
+        self.stealth_active = True # الحماية من التصوير مفعلة افتراضياً (مخفي عن الآخرين)
+        
+        # تشغيل مراقب F4
+        self.f4_was_pressed = False
+        self.root.after(100, self.monitor_f4_safe)
         
         style = ttk.Style()
         style.theme_use('vista')
         self.root.eval('tk::PlaceWindow . center')
         
-        self.process = None
         self.current_lang = "AR"
+        # مراقبة الحالة الحالية (هل الرؤية مفعلة؟ هل الأيمبوت يعمل؟)
+        self.visualize_active = False
+        self.aimbot_running = False
         
-        # تحميل رقم الإصدار من ملف version.json
-        self.app_version = "1.0"
+        # تحميل رقم الإصدار
+        self.app_version = "2.2"
         try:
             v_path = os.path.join(os.path.dirname(__file__), "version.json")
             if os.path.exists(v_path):
                 with open(v_path, 'r') as f:
-                    self.app_version = json.load(f).get("version", "1.0")
+                    self.app_version = json.load(f).get("version", "1.9")
         except: pass
         
         main_frame = ttk.Frame(root, padding="15 15 15 15")
@@ -172,11 +199,6 @@ class ClassicAHKUI:
         self.btn_next = ttk.Button(cfg_frame, text=">", width=3, command=self.next_config)
         self.btn_next.pack(side=tk.RIGHT)
 
-        # إضافة رقم الإصدار تحت يمين الواجهة بشكل واضح
-        # v1.0
-        self.lbl_ver_num = ttk.Label(main_frame, text=f"v{self.app_version}", font=("Segoe UI", 8, "bold"), foreground="#666666")
-        self.lbl_ver_num.pack(side=tk.BOTTOM, anchor="se", pady=(15, 0))
-
         # اختيار زر التشغيل (Trigger Key)
         self.lbl_trigger = ttk.Label(main_frame, text=TRANSLATIONS[self.current_lang]["trigger"])
         self.lbl_trigger.pack(anchor="w", pady=(15, 2))
@@ -209,8 +231,28 @@ class ClassicAHKUI:
         self.btn_key_next = ttk.Button(trigger_frame, text=">", width=3, command=self.next_key)
         self.btn_key_next.pack(side=tk.RIGHT)
 
+        # حاوية سفلية للنسخة وزر الإخفاء/الإظهار - نضعها هنا بعد كل العناصر
+        bottom_info_frame = ttk.Frame(main_frame)
+        bottom_info_frame.pack(side=tk.BOTTOM, fill=tk.X, pady=(20, 0))
+
+        # زر التحكم في الظهور بالتصوير (Stealth Toggle)
+        self.stealth_active = True 
+        self.btn_stealth = ttk.Button(bottom_info_frame, text=TRANSLATIONS[self.current_lang]["show_aim"], 
+                                    width=11, command=self.toggle_stealth)
+        self.btn_stealth.pack(side=tk.LEFT)
+        
+        # زر العين الجديد (AI Vision)
+        # 👁️ = Eye on, 🕶️ = Eye off
+        self.btn_vision = ttk.Button(bottom_info_frame, text="👁️", width=4, command=self.toggle_vision)
+        self.btn_vision.pack(side=tk.LEFT, padx=(5, 0))
+
+        # v1.9
+        self.lbl_ver_num = ttk.Label(bottom_info_frame, text=f"v{self.app_version}", font=("Segoe UI", 8, "bold"), foreground="#666666")
+        self.lbl_ver_num.pack(side=tk.RIGHT)
+
         self.configs_list = []
         self.current_cfg_idx = 0
+        self.process = None # العملية الخلفية
         
         self.refresh_configs()
         self.load_active_config()
@@ -236,14 +278,88 @@ class ClassicAHKUI:
             
         self.lbl_profile.config(text=TRANSLATIONS[lang]["profile"])
         self.lbl_trigger.config(text=TRANSLATIONS[lang]["trigger"])
+        
+        # تحديث نص زر التخفي حسب الحالة الحالية (Stealth Active = Hidden from capture)
+        if self.stealth_active:
+            self.btn_stealth.config(text=TRANSLATIONS[lang]["show_aim"]) # نص الزر: إظهار في التصوير
+        else:
+            self.btn_stealth.config(text=TRANSLATIONS[lang]["hide_aim"]) # نص الزر: إخفاء من التصوير
 
     def apply_stealth_capture(self):
+        # إخفاء النافذة من برامج التسجيل والديسكورد (التخفي)
         try:
+            self.root.update_idletasks()
             hwnd = ctypes.windll.user32.GetParent(self.root.winfo_id())
-            WDA_EXCLUDEFROMCAPTURE = 0x00000011
-            ctypes.windll.user32.SetWindowDisplayAffinity(hwnd, WDA_EXCLUDEFROMCAPTURE)
-        except Exception as e:
-            print("Stealth Mode Error:", e)
+            if not hwnd: hwnd = self.root.winfo_id()
+            if hwnd:
+                # 0x11 = WDA_EXCLUDEFROMCAPTURE
+                ctypes.windll.user32.SetWindowDisplayAffinity(hwnd, 0x11)
+                self.stealth_active = True
+        except Exception: pass
+
+    def disable_stealth_capture(self):
+        # إظهار النافذة في برامج التسجيل (إلغاء التخفي)
+        try:
+            self.root.update_idletasks()
+            hwnd = ctypes.windll.user32.GetParent(self.root.winfo_id())
+            if not hwnd: hwnd = self.root.winfo_id()
+            if hwnd:
+                # 0x00 = WDA_NONE
+                ctypes.windll.user32.SetWindowDisplayAffinity(hwnd, 0x01 if os.name == 'nt' else 0x00)
+                # ملحوظة: بعض الأجهزة تحتاج 0x01 لإعادة الإظهار وبعضها 0x00
+                ctypes.windll.user32.SetWindowDisplayAffinity(hwnd, 0x00)
+                self.stealth_active = False
+        except Exception: pass
+
+    def toggle_stealth(self):
+        if self.stealth_active:
+            self.disable_stealth_capture()
+            self.btn_stealth.config(text=TRANSLATIONS[self.current_lang]["hide_aim"])
+        else:
+            self.apply_stealth_capture()
+            self.btn_stealth.config(text=TRANSLATIONS[self.current_lang]["show_aim"])
+
+    def toggle_vision(self):
+        # تبديل ظهور نافذة المعاينة (العين)
+        self.visualize_active = not self.visualize_active
+        self.btn_vision.config(text="👁️" if self.visualize_active else "🚫👁️")
+        
+        # تحديث ملف الإعدادات ليقرأه السكربت في الخلفية
+        vals = self.get_current_values()
+        save_active_config(vals)
+        
+        # التأكد من أن العملية تعمل
+        self.ensure_ai_running()
+
+    def ensure_ai_running(self):
+        if self.process is None or not self.process.is_alive():
+            self.process = multiprocessing.Process(target=run_detection)
+            self.process.start()
+
+    def monitor_f4_safe(self):
+        # مراقبة F4 بشكل آمن لتفادي تجمد الواجهة
+        f4_key = 0x73
+        is_pressed = win32api.GetAsyncKeyState(f4_key) & 0x8000
+        if is_pressed and not self.f4_was_pressed:
+            self.toggle_visibility()
+        self.f4_was_pressed = is_pressed
+        self.root.after(100, self.monitor_f4_safe)
+
+    def toggle_visibility(self):
+        if self.visible:
+            self.root.attributes("-alpha", 0.0)
+            self.root.withdraw() # ننسحب تماماً
+            self.visible = False
+        else:
+            self.root.deiconify() # نظهر النافذة
+            self.root.attributes("-alpha", 1.0) # نلغي الشفافية
+            self.root.wm_attributes("-topmost", True) # نأكد أنها فوق اللعبة
+            self.root.focus_force() # نطلب التركيز
+            self.visible = True
+            
+            # نطبق الحماية من التصوير فوراً عشان "أنت بس اللي تشوفه"
+            if self.stealth_active:
+                self.root.after(10, self.apply_stealth_capture)
 
     def refresh_configs(self):
         files = glob.glob(os.path.join(CONFIG_DIR, "*.json"))
@@ -304,8 +420,12 @@ class ClassicAHKUI:
                 vals[key] = DEFAULT_CONFIG[key]
         
         selected_key_name = self.trigger_var.get()
-        vals["trigger_key"] = selected_key_name # حفظ الاسم للملف
-        vals["trigger_key_hex"] = hex(self.key_map.get(selected_key_name, 0x06)) # الكود للتشغيل
+        vals["trigger_key"] = selected_key_name 
+        vals["trigger_key_hex"] = hex(self.key_map.get(selected_key_name, 0x06))
+        
+        # إضافة إعدادات الرؤية والأيمبوت للقيم المحفوظة
+        vals["visualize"] = self.visualize_active
+        vals["enable_aim"] = self.aimbot_running
         return vals
 
     def save_config(self):
@@ -345,33 +465,24 @@ class ClassicAHKUI:
             messagebox.showerror("Error", "Save file not found!")
 
     def start_ai(self):
+        # تشغيل وضع الأيمبوت (لكن السكربت يعمل فعلياً في الخلفية دائماً عند تشغيله)
+        self.aimbot_running = True
         vals = self.get_current_values()
         save_active_config(vals)
-        if self.process is None or not self.process.is_alive():
-            self.process = multiprocessing.Process(target=run_detection)
-            self.process.start()
-            
-            self.btn_aim_on.config(state=tk.DISABLED)
-            self.btn_aim_off.config(state=tk.NORMAL)
+        
+        self.ensure_ai_running()
+        
+        self.btn_aim_on.config(state=tk.DISABLED)
+        self.btn_aim_off.config(state=tk.NORMAL)
 
     def stop_ai(self):
-        if self.process and self.process.is_alive():
-            try:
-                # نحصل على رقم العملية (PID) لقتلها هي فقط دون التأثير على محرك الـ VS Code
-                pid = self.process.pid
-                # محاولة الإيقاف الطبيعي
-                self.process.terminate()
-                self.process.join(timeout=0.5)
-                
-                # إذا لم تنتهِ، نقتلها قسرياً برقمها الخاص فقط (بشكل نظيف جداً)
-                if self.process.is_alive():
-                    import subprocess
-                    subprocess.call(['taskkill', '/F', '/T', '/PID', str(pid)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            except:
-                pass
-            
-            self.btn_aim_on.config(state=tk.NORMAL)
-            self.btn_aim_off.config(state=tk.DISABLED)
+        # تعطيل خاصية السحب/الأيمبوت ولكن مع إبقاء العملية تعمل (لميزة العين)
+        self.aimbot_running = False
+        vals = self.get_current_values()
+        save_active_config(vals)
+        
+        self.btn_aim_on.config(state=tk.NORMAL)
+        self.btn_aim_off.config(state=tk.DISABLED)
 
     def on_closing(self):
         # ضمان قتل كل العمليات المتبقية للذكاء الاصطناعي في الخلفية
@@ -395,5 +506,15 @@ class ClassicAHKUI:
 if __name__ == '__main__':
     multiprocessing.freeze_support()
     root = tk.Tk()
-    app = ClassicAHKUI(root)
-    root.mainloop()
+    
+    # الإخفاء المطلق قبل أي شيء (يمنع الفلاش في كل كروت الشاشة)
+    root.withdraw()
+    root.attributes("-alpha", 0.0)
+    
+    try:
+        app = ClassicAHKUI(root)
+        root.mainloop()
+    except Exception as e:
+        # سجل أخطاء في حال تعطل البرنامج بصمت
+        with open("crash_log.txt", "w") as f:
+            f.write(str(e))
