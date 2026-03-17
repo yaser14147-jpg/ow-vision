@@ -14,11 +14,23 @@ UPDATE_VERSION_URL = f"{BASE_RAW_URL}/ow-vision/scripts/version.json"
 CODE_UPDATE_URL = f"{BASE_RAW_URL}/ow-vision/scripts/main.py"
 DETECT_UPDATE_URL = f"{BASE_RAW_URL}/ow-vision/scripts/ai/Detection.py"
 
+# روابط ملفات التشغيل في الجذر (Root)
+INSTALL_BAT_URL = f"{BASE_RAW_URL}/INSTALL_LIBRARIES.bat"
+UPDATE_BAT_URL = f"{BASE_RAW_URL}/UPDATE_PROGRAM.bat"
+START_VBS_URL = f"{BASE_RAW_URL}/START_AIMBOT.vbs"
+
 # تحديد المسارات برمجياً ليعمل البرنامج حتى لو تغير اسم المجلد
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) # مجلد ow-vision
+ROOT_DIR = os.path.dirname(BASE_DIR) # المجلد الرئيسي (Aim أو AI)
+
 LOCAL_VERSION_PATH = os.path.join(BASE_DIR, "scripts", "version.json")
 MAIN_PY_PATH = os.path.join(BASE_DIR, "scripts", "main.py")
 DETECTION_PY_PATH = os.path.join(BASE_DIR, "scripts", "ai", "Detection.py")
+
+# مسارات ملفات الجِذر المحلية
+LOCAL_INSTALL_BAT = os.path.join(ROOT_DIR, "INSTALL_LIBRARIES.bat")
+LOCAL_UPDATE_BAT = os.path.join(ROOT_DIR, "UPDATE_PROGRAM.bat")
+LOCAL_START_VBS = os.path.join(ROOT_DIR, "START_AIMBOT.vbs")
 
 def download_file(url, local_path):
     print(f"Downloading update from {url}...")
@@ -62,10 +74,16 @@ def check_for_updates():
                 print("------------------------------------------")
                 print("[+] Starting Auto-Download...")
                 
-                # تحميل الملفات الثلاثة الأساسية
+                # تحميل الملفات الأساسية والمحركات
                 success = True
                 if not download_file(CODE_UPDATE_URL, MAIN_PY_PATH): success = False
                 if not download_file(DETECT_UPDATE_URL, DETECTION_PY_PATH): success = False
+                
+                # تحميل وتحديث ملفات الـ Bat والـ VBS لضمان تحديث النظام بالكامل
+                print("[+] Syncing launcher files...")
+                download_file(INSTALL_BAT_URL, LOCAL_INSTALL_BAT)
+                download_file(UPDATE_BAT_URL, LOCAL_UPDATE_BAT)
+                download_file(START_VBS_URL, LOCAL_START_VBS)
                 
                 if success:
                     with open(LOCAL_VERSION_PATH, 'w') as f:
