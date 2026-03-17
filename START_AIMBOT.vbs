@@ -5,27 +5,34 @@ Set fso = CreateObject("Scripting.FileSystemObject")
 StrPath = fso.GetParentFolderName(WScript.ScriptFullName)
 MainPyPath = fso.BuildPath(StrPath, "ow-vision\scripts\main.py")
 
-' --- [2] FIND PYTHONW.EXE LOCALLY IF NOT IN PATH ---
+' --- [2] FIND PYTHONW.EXE (REFINED BRUTE FORCE) ---
 Sub FindPythonW()
     On Error Resume Next
-    ' Try common locations
-    Locations = Array("pythonw.exe", _
-                      "C:\Program Files\Python312\pythonw.exe", _
-                      "C:\Program Files\Python311\pythonw.exe", _
-                      WshShell.ExpandEnvironmentStrings("%LocalAppData%\Programs\Python\Python312\pythonw.exe"), _
-                      WshShell.ExpandEnvironmentStrings("%LocalAppData%\Programs\Python\Python311\pythonw.exe"))
-    
     FoundPy = ""
+    
+    ' Priority 1: Check if in PATH directly
+    Err.Clear
+    WshShell.Run "pythonw.exe --version", 0, True
+    If Err.Number = 0 Then FoundPy = "pythonw.exe": Exit Sub
+
+    ' Priority 2: Check common locations
+    Locations = Array("C:\Program Files\Python312\pythonw.exe", _
+                      "C:\Program Files\Python311\pythonw.exe", _
+                      "C:\Program Files\Python310\pythonw.exe", _
+                      WshShell.ExpandEnvironmentStrings("%LocalAppData%\Programs\Python\Python312\pythonw.exe"), _
+                      WshShell.ExpandEnvironmentStrings("%LocalAppData%\Programs\Python\Python311\pythonw.exe"), _
+                      WshShell.ExpandEnvironmentStrings("%LocalAppData%\Programs\Python\Python310\pythonw.exe"), _
+                      "C:\Python312\pythonw.exe", _
+                      "C:\Python311\pythonw.exe")
+    
     For Each Loc In Locations
-        If Loc = "pythonw.exe" Then
-            ' Check if it's in PATH
-            Err.Clear
-            WshShell.Run Loc & " --version", 0, True
-            If Err.Number = 0 Then FoundPy = Loc: Exit For
-        Else
-            If fso.FileExists(Loc) Then FoundPy = Loc: Exit For
-        End If
+        If fso.FileExists(Loc) Then FoundPy = Loc: Exit Sub
     Next
+    
+    ' Priority 3: Try 'pyw.exe' (Python Launcher)
+    Err.Clear
+    WshShell.Run "pyw.exe --version", 0, True
+    If Err.Number = 0 Then FoundPy = "pyw.exe": Exit Sub
 End Sub
 
 ' --- [3] RUN THE SCRIPT ---
@@ -41,5 +48,7 @@ If FoundPy <> "" Then
     ' Using double quotes for both python and main.py path
     WshShell.Run """" & FoundPy & """ """ & MainPyPath & """", 0, False
 Else
-    MsgBox "Error: pythonw.exe not found! Please run INSTALL_LIBRARIES.bat first.", 16, "Environment Error"
+    MsgBox "Python was not found on your system!" & vbCrLf & _
+           "Please run INSTALL_LIBRARIES.bat as Administrator first." & vbCrLf & _
+           "If you already did, restart your PC and try again.", 16, "Python Not Found"
 End If
