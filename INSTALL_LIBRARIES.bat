@@ -10,7 +10,6 @@ if %errorlevel% neq 0 (
     echo [!] PYTHON NOT FOUND! 
     echo [!] Attempting to download and install Python automatically...
     
-    :: تحميل مثبت بايثون الصامت (نسخة 3.12 مستقرة)
     set "py_url=https://www.python.org/ftp/python/3.12.2/python-3.12.2-amd64.exe"
     set "py_exe=%temp%\python_installer.exe"
     
@@ -19,14 +18,11 @@ if %errorlevel% neq 0 (
     
     if exist "%py_exe%" (
         echo [+] Installing Python silently... Please wait...
-        echo [+] (This will add Python to your system PATH automatically)
         start /wait "" "%py_exe%" /quiet InstallAllUsers=1 PrependPath=1 Include_test=0
         echo [OK] Python installation finished!
-        
-        :: محاولة تحديث الـ PATH للجلسة الحالية
         set "PATH=%PATH%;C:\Program Files\Python312\;C:\Program Files\Python312\Scripts\"
     ) else (
-        echo [X] FAILED TO DOWNLOAD PYTHON. Please install it manually from python.org
+        echo [X] FAILED TO DOWNLOAD PYTHON.
         pause
         exit
     )
@@ -36,19 +32,14 @@ if %errorlevel% neq 0 (
 
 echo.
 echo ==========================================
-echo    [+] 2/3: REPAIRING & UPGRADING PIP...
+echo    [+] 2/3: CHECKING LIBRARIES...
 echo ==========================================
-python -m ensurepip --default-pip >nul 2>&1
-python -m pip install --upgrade pip
 
-echo.
-echo ==========================================
-echo    [+] 3/3: INSTALLING MISSING LIBRARIES...
-echo ==========================================
-:: قائمة المكتبات المطلوبة
+:: قائمة المكتبات المطلوبة للتحقق منها واحدة تلو الأخرى لعدم التكرار
 set "libs=ultralytics mss opencv-python numpy pyautogui pywin32 dxcam torch torchvision torchaudio requests"
 
-echo [+] Checking each library and installing if missing...
+echo [+] Checking each library and installing ONLY IF MISSING...
+:: نستخدم الأمر install بدون upgrade لضمان السرعة وعدم استهلاك الإنترنت لو كانت موجودة
 python -m pip install %libs% --extra-index-url https://download.pytorch.org/whl/cu121
 
 echo.
