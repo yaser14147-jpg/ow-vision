@@ -1,29 +1,21 @@
 @echo off
-title OVERWATCH-AI SMART UPDATER
+title OVERWATCH-AI UPDATER
 echo ==========================================
-echo    [*] Checking System Environment...
+echo    [*] Checking for Latest Version...
 echo ==========================================
 
-:: 1. فحص بايثون أولاً قبل أي شيء
+:: فحص سريع لوجود بايثون فقط
 python --version >nul 2>&1
 if %errorlevel% neq 0 (
-    echo [!] Python is missing! Redirecting to Installer...
-    timeout /t 2 >nul
-    call "INSTALL_LIBRARIES.bat"
-    
-    :: فحص مرة أخرى بعد محاولة التثبيت
-    python --version >nul 2>&1
-    if %errorlevel% neq 0 (
-        echo [X] Critical Error: Python could not be installed. 
-        pause
-        exit
-    )
+    echo [!] ERROR: Python is not installed.
+    echo [!] Please run INSTALL_LIBRARIES.bat first!
+    pause
+    exit
 )
 
-:: 2. إذا بايثون موجود، نبدأ التحديث الآن
-echo [+] Python found. Checking for updates...
-echo ==========================================
+:: تشغيل كود التحديث
 python "%~dp0ow-vision\scripts\updater.py"
+
 echo ==========================================
 echo.
 echo Process Complete.
