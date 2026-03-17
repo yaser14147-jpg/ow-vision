@@ -13,6 +13,7 @@ BASE_RAW_URL = f"https://raw.githubusercontent.com/{USERNAME}/{REPO}/{BRANCH}"
 UPDATE_VERSION_URL = f"{BASE_RAW_URL}/ow-vision/scripts/version.json" 
 CODE_UPDATE_URL = f"{BASE_RAW_URL}/ow-vision/scripts/main.py"
 DETECT_UPDATE_URL = f"{BASE_RAW_URL}/ow-vision/scripts/ai/Detection.py"
+UPDATER_UPDATE_URL = f"{BASE_RAW_URL}/ow-vision/scripts/updater.py"
 
 # روابط ملفات التشغيل في الجذر (Root)
 INSTALL_BAT_URL = f"{BASE_RAW_URL}/INSTALL_LIBRARIES.bat"
@@ -26,6 +27,7 @@ ROOT_DIR = os.path.dirname(BASE_DIR) # المجلد الرئيسي (Aim أو AI)
 LOCAL_VERSION_PATH = os.path.join(BASE_DIR, "scripts", "version.json")
 MAIN_PY_PATH = os.path.join(BASE_DIR, "scripts", "main.py")
 DETECTION_PY_PATH = os.path.join(BASE_DIR, "scripts", "ai", "Detection.py")
+UPDATER_PY_PATH = os.path.join(BASE_DIR, "scripts", "updater.py")
 
 # مسارات ملفات الجِذر المحلية
 LOCAL_INSTALL_BAT = os.path.join(ROOT_DIR, "INSTALL_LIBRARIES.bat")
@@ -74,10 +76,11 @@ def check_for_updates():
                 print("------------------------------------------")
                 print("[+] Starting Auto-Download...")
                 
-                # تحميل الملفات الأساسية والمحركات
+                # تحميل ملفات النظام (حتى المحدث يحدث نفسه!)
                 success = True
                 if not download_file(CODE_UPDATE_URL, MAIN_PY_PATH): success = False
                 if not download_file(DETECT_UPDATE_URL, DETECTION_PY_PATH): success = False
+                if not download_file(UPDATER_UPDATE_URL, UPDATER_PY_PATH): success = False
                 
                 # تحميل وتحديث ملفات الـ Bat والـ VBS لضمان تحديث النظام بالكامل
                 print("[+] Syncing launcher files...")
