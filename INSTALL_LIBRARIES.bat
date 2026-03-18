@@ -1,9 +1,9 @@
 @echo off
 setlocal enabledelayedexpansion
-title AI VISION MASTER v16.1 (PROGRESS ENGINE)
+title AI VISION MASTER v16.2 (GPU-FORCE ENGINE)
 
 echo ==========================================
-echo    [*] STEP 1/3: SYSTEM VALIDATION (v16.1)
+echo    [*] STEP 1/3: SYSTEM VALIDATION (v16.2)
 echo ==========================================
 
 :: [1] Search for Python 3.12
@@ -39,25 +39,30 @@ echo !ABS_PYW! > "%~dp0python_path.txt"
 
 echo.
 echo ==========================================
-echo    [*] STEP 2/3: PROGRESS SYNC (v16.1)
+echo    [*] STEP 2/3: FORCED GPU SYNC (v16.2)
 echo ==========================================
 echo [*] Target Engine: !ABS_PY!
-echo [!] Downloading AI Libraries... Please wait for the Progress Bars.
 
+echo [!] CLEANING OLD CPU DRIVERS...
+echo [!] This ensures no conflicts with the GPU Engine.
+"!ABS_PY!" -m pip uninstall torch torchvision torchaudio -y --quiet
+
+echo [*] Upgrading System Libraries...
 "!ABS_PY!" -m pip install --upgrade pip
 "!ABS_PY!" -m pip install ultralytics mss opencv-python numpy pandas pyautogui pywin32 requests --no-cache-dir
 
 echo.
-echo [*] Initializing GPU AI Brain (CUDA 12.1)...
-echo [!] CRITICAL: This file is ~2.5GB. Download speed depends on your internet.
+echo [*] Initializing HIGH-PERFORMANCE Brain (CUDA 12.1)...
+echo [!] CRITICAL: Downloading ~2.5GB GPU Engine.
+echo [!] Speed depends on your internet. Do NOT close this window.
 "!ABS_PY!" -m pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121 --no-cache-dir
 
 echo.
 echo ==========================================
-echo       [SUCCESS] SYSTEM v16.1 READY
+echo       [SUCCESS] SYSTEM v16.2 READY
 echo ==========================================
-"!ABS_PY!" -c "import torch; print('+++ GPU STATUS: ACTIVE +++' if torch.cuda.is_available() else '--- GPU STATUS: CPU ONLY ---'); print('Device:', torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'None')"
+"!ABS_PY!" -c "import torch; print('+++ GPU STATUS: ACTIVE (ELITE PERFORMANCE) +++' if torch.cuda.is_available() else '--- GPU STATUS: CPU ONLY (CHECK DRIVERS) ---'); print('Device Name:', torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'None')"
 
 echo.
-echo [OK] Deployment Complete. v16.1
+echo [OK] Deployment Complete. Version: 16.2
 pause

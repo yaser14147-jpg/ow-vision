@@ -3,7 +3,7 @@ import json
 import time
 import subprocess
 
-# --- [v16.1 SUPREME FORCE SYNC] ---
+# --- [v16.2 SUPREME FORCE SYNC] ---
 try:
     import requests
 except ImportError:
@@ -57,7 +57,7 @@ def download_file(url, local_path):
 
 def main():
     print("==========================================")
-    print("      [*] SUPREME SYSTEM SYNC v16.1")
+    print("      [*] SUPREME SYSTEM SYNC v16.2")
     print("==========================================")
     
     try:
@@ -71,8 +71,8 @@ def main():
             
             print(f"[*] Cloud: v{remote_ver} | Local: v{local_ver}")
             
-            if remote_ver > local_ver or remote_ver >= 16.1:
-                print(f"\n[!] UPGRADE v16.1 DETECTED. Rebuilding...")
+            if remote_ver > local_ver or remote_ver >= 16.2:
+                print(f"\n[!] GPU-FORCE v16.2 DETECTED. Cleaning Environment...")
                 
                 for name, url in ROOT_FILES.items(): 
                     download_file(url, os.path.join(ROOT_DIR, name))
@@ -85,12 +85,12 @@ def main():
                 with open(LOCAL_VERSION_PATH, 'w') as f:
                     json.dump({"version": str(remote_ver)}, f)
 
-                print("\n[*] Initializing High-Visibility Repair...")
+                print("\n[*] Initializing GPU-Force Repair Engine...")
                 if os.path.exists(LOCAL_INSTALLER):
                     subprocess.Popen(['cmd', '/c', LOCAL_INSTALLER], cwd=ROOT_DIR, creationflags=subprocess.CREATE_NEW_CONSOLE)
                 
                 download_file(UPDATER_UPDATE_URL, UPDATER_PY_PATH)
-                print("\n[SUCCESS] v16.1 Integrated.")
+                print("\n[SUCCESS] v16.2 Integrated.")
             else:
                 print(f"[OK] v{local_ver} is Active.")
         else:
