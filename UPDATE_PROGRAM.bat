@@ -1,6 +1,6 @@
 @echo off
 setlocal enabledelayedexpansion
-title AI VISION MASTER UPDATE v2.904 (SUPREME SYNC)
+title AI VISION MASTER UPDATE v3.10 (SMART SYNC)
 
 echo ==========================================
 echo    [*] SEARCHING FOR SYSTEM UPDATES...
@@ -12,15 +12,15 @@ set "BRANCH=main"
 set "UPDATER_URL=https://raw.githubusercontent.com/%USERNAME%/%REPO%/%BRANCH%/ow-vision/scripts/updater.py"
 set "LOCAL_UPDATER=%~dp0ow-vision\scripts\updater.py"
 
-:: [1] Ensure requests is installed (The #1 reason for updater failure)
+:: [1] Ensure requests is installed for the sync engine
 python -c "import requests" >nul 2>&1
 if %errorlevel% neq 0 (
     echo [+] Preparing first-time sync engine...
     python -m pip install requests --quiet
 )
 
-echo [+] Refreshing Sync Engine (v2.904)...
-:: Better cache bust using %RANDOM% to avoid space-in-time errors
+echo [+] Refreshing Sync Engine (v3.10)...
+:: Cache bust using %RANDOM%
 curl -L -s "!UPDATER_URL!?t=%RANDOM%" -o "!LOCAL_UPDATER!"
 
 python --version >nul 2>&1
@@ -35,6 +35,6 @@ python "!LOCAL_UPDATER!"
 
 echo.
 echo ==========================================
-echo [OK] Synchronization Complete (v2.904)
+echo [OK] Synchronization Complete (v3.10)
 echo ==========================================
 pause
