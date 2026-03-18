@@ -5,7 +5,7 @@ import shutil
 import time
 import subprocess
 
-# --- [v3.4] SYSTEM SYNCHRONIZATION MASTER ---
+# --- [v3.5] SUPREME SYSTEM SYNC ---
 USERNAME = "yaser14147-jpg"
 REPO = "ow-vision"
 BRANCH = "main"
@@ -42,7 +42,6 @@ def download_file(url, local_path):
     print(f"[*] Syncing: {os.path.basename(local_path):<25}", end="", flush=True)
     try:
         os.makedirs(os.path.dirname(local_path), exist_ok=True)
-        # FORCE REFRESH FROM GITHUB
         r = requests.get(f"{url}?t={int(time.time() * 1000)}", timeout=30) 
         if r.status_code == 200:
             with open(local_path, 'wb') as f: f.write(r.content)
@@ -62,7 +61,7 @@ def fix_env():
 
 def main():
     print("==========================================")
-    print("      [*] SUPREME SYSTEM SYNC v3.4")
+    print("      [*] SUPREME SYSTEM SYNC v3.5")
     print("==========================================")
     
     if not os.path.exists(LOCAL_VERSION_PATH):
@@ -70,7 +69,6 @@ def main():
         with open(LOCAL_VERSION_PATH, 'w') as f: json.dump({"version": "0.1"}, f)
 
     try:
-        # Cache-busting version check
         r_ver = requests.get(f"{UPDATE_VERSION_URL}?t={int(time.time()*1000)}", timeout=10)
         with open(LOCAL_VERSION_PATH, 'r') as f: local = json.load(f)
         
@@ -81,40 +79,34 @@ def main():
             
             print(f"[*] Cloud: v{remote_ver} | Local: v{local_ver}")
             
-            # FORCE SYNC ALL Root + App Content for v3.4 to ensure parity
-            if remote_ver > local_ver or remote_ver >= 3.4:
-                print(f"\n[!] MAJOR UPDATE v3.4 TRIGGERED. Full System Sync.")
+            if remote_ver > local_ver or remote_ver >= 3.5:
+                print(f"\n[!] UPGRADE v3.5 DETECTED. Re-syncing for GPU Parity.")
                 
-                # Update Root Files First (requested)
                 for name, url in ROOT_FILES.items(): 
                     download_file(url, os.path.join(ROOT_DIR, name))
 
-                # Update App Content
                 download_file(CODE_UPDATE_URL, MAIN_PY_PATH)
                 download_file(DETECT_UPDATE_URL, DETECTION_PY_PATH)
                 download_file(CONFIG_DEFAULT_URL, LOCAL_DEFAULT_JSON)
                 
-                if not os.path.exists(LOCAL_MODEL_PATH) or remote_ver >= 3.4:
+                if not os.path.exists(LOCAL_MODEL_PATH) or remote_ver >= 3.5:
                     download_file(MODEL_URL, LOCAL_MODEL_PATH)
 
-                # Finalize
                 fix_env()
                 with open(LOCAL_VERSION_PATH, 'w') as f:
                     json.dump({"version": str(remote_ver)}, f)
 
-                # TRIGGER RE-INSTALL FOR NEW CUDA/RESOLUTION PERF
-                print("\n[*] Initializing Final AI Master v3.4...")
-                print("[!] Friends' performance fixes are being applied now.")
+                print("\n[*] Launching Power Engine v3.5...")
                 if os.path.exists(LOCAL_INSTALLER):
                     subprocess.Popen(['cmd', '/c', LOCAL_INSTALLER], cwd=ROOT_DIR, creationflags=subprocess.CREATE_NEW_CONSOLE)
                 
                 download_file(UPDATER_UPDATE_URL, UPDATER_PY_PATH)
-                print("\n[SUCCESS] v3.4 Supreme Deployment Finished.")
+                print("\n[SUCCESS] v3.5 Integrated.")
             else:
-                print(f"[OK] v{local_ver} is Current and Healthy.")
+                print(f"[OK] System v{local_ver} is Optimal.")
                 fix_env()
         else:
-            print("\n[!] Cloud Connection Failed. Using local offline mode.")
+            print("\n[!] Connection Failed.")
     except Exception as e:
         print(f"\n[!] Sync Crash: {e}")
 
