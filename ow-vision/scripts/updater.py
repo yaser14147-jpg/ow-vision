@@ -4,14 +4,14 @@ import os
 import shutil
 import time
 
-# --- [1] System Synchronization Settings (v9.0 ULTIMATE AUTO-SYNC) ---
+# --- [1] System Synchronization Settings (v9.1 ULTIMATE TURBO) ---
 USERNAME = "yaser14147-jpg"
 REPO = "ow-vision"
 BRANCH = "main"
 
 BASE_RAW_URL = f"https://raw.githubusercontent.com/{USERNAME}/{REPO}/{BRANCH}"
 
-# URLs for updates
+# Core System URLs
 UPDATE_VERSION_URL = f"{BASE_RAW_URL}/ow-vision/scripts/version.json" 
 CODE_UPDATE_URL = f"{BASE_RAW_URL}/ow-vision/scripts/main.py"
 DETECT_UPDATE_URL = f"{BASE_RAW_URL}/ow-vision/scripts/ai/Detection.py"
@@ -19,7 +19,7 @@ UPDATER_UPDATE_URL = f"{BASE_RAW_URL}/ow-vision/scripts/updater.py"
 MODEL_URL = f"{BASE_RAW_URL}/ow-vision/models/v2.pt"
 CONFIG_DEFAULT_URL = f"{BASE_RAW_URL}/ow-vision/scripts/configs/Default.json"
 
-# Launcher Files (Root) - The "Master Refresh" List
+# Launcher Files (Root)
 ROOT_FILES = {
     "INSTALL_LIBRARIES.bat": f"{BASE_RAW_URL}/INSTALL_LIBRARIES.bat",
     "UPDATE_PROGRAM.bat": f"{BASE_RAW_URL}/UPDATE_PROGRAM.bat",
@@ -40,36 +40,37 @@ PYTHON_PATH_FILE = os.path.join(ROOT_DIR, "python_path.txt")
 
 def download_file(url, local_path):
     filename = os.path.basename(local_path)
-    print(f"[*] Syncing: {filename}...")
+    print(f"[*] Syncing: {filename:<25}", end="", flush=True)
     try:
         os.makedirs(os.path.dirname(local_path), exist_ok=True)
-        # Force cache-busting on EVERY core file sync
         cache_bust_url = f"{url}?t={int(time.time())}"
-        r = requests.get(cache_bust_url, stream=True, timeout=30) 
+        r = requests.get(cache_bust_url, stream=True, timeout=20) 
         if r.status_code == 200:
             with open(local_path, 'wb') as f:
                 for chunk in r.iter_content(chunk_size=8192):
                     if chunk: f.write(chunk)
+            print("[OK]")
             return True
+        print("[FAILED]")
         return False
     except:
+        print("[ERROR]")
         return False
 
 def fix_environment():
     """Forces the python_path.txt to be absolutely correct for the VBS runner."""
     try:
         import sys
-        # sys.executable is the most reliable way when running
         pyw_path = sys.executable.lower().replace("python.exe", "pythonw.exe")
         if os.path.exists(pyw_path):
             with open(PYTHON_PATH_FILE, "w") as f:
                 f.write(pyw_path)
-            print(f"[OK] Environment Locked: {os.path.basename(pyw_path)}")
+            print(f"[OK] Environment Locked.")
     except: pass
 
 def check_for_updates():
     print("==========================================")
-    print("      [*] Searching for Cloud Sync...")
+    print("      [*] System Synchronization...")
     print("==========================================")
     
     if not os.path.exists(LOCAL_VERSION_PATH):
@@ -81,51 +82,45 @@ def check_for_updates():
         with open(LOCAL_VERSION_PATH, 'r') as f:
             local = json.load(f)
             
-        print(f"[*] Local System: v{local['version']}")
-        
         r = requests.get(f"{UPDATE_VERSION_URL}?t={int(time.time())}", timeout=10)
         if r.status_code == 200:
             remote = r.json()
             
             if float(remote['version']) > float(local['version']):
-                print(f"\n[!] UPDATING EVERYTHING TO v{remote['version']}...")
+                print(f"[!] New Version v{remote['version']} Detected.")
                 print("------------------------------------------")
                 
-                # 1. ROOT REFRESH (Force update all BAT and VBS files)
+                success = True
+                
+                # 1. Update Core Infrastructure
                 for filename, url in ROOT_FILES.items():
                     dest = os.path.join(ROOT_DIR, filename)
-                    download_file(url, dest)
+                    if not download_file(url, dest): success = False
                 
-                # 2. CORE SYSTEM SYNC
+                # 2. Update Engine & Model
                 download_file(CODE_UPDATE_URL, MAIN_PY_PATH)
                 download_file(DETECT_UPDATE_URL, DETECTION_PY_PATH)
                 
-                # 3. ENGINE SYNC (Model)
-                if not os.path.exists(LOCAL_MODEL_PATH) or float(remote['version']) >= 9.0:
+                if not os.path.exists(LOCAL_MODEL_PATH) or float(remote['version']) >= 9.1:
                      download_file(MODEL_URL, LOCAL_MODEL_PATH)
                 
-                # 4. PRESET PROTECTION (Only sync Default)
+                # 3. Update Presets
                 download_file(CONFIG_DEFAULT_URL, LOCAL_DEFAULT_JSON)
                 
-                # 5. ENVIRONMENT REPAIR
+                # 4. Finalize
                 fix_environment()
-                
-                # 6. UPDATER SELF-SYNC (Download latest code for next time)
                 download_file(UPDATER_UPDATE_URL, UPDATER_PY_PATH)
+                download_file(UPDATE_VERSION_URL, LOCAL_VERSION_PATH)
                 
-                # 7. FINALIZE (Save new version)
-                if download_file(UPDATE_VERSION_URL, LOCAL_VERSION_PATH):
-                    print("\n[SUCCESS] FULL SYSTEM REFRESH COMPLETE!")
-                else:
-                    print("\n[!] Version sync failed, but files were updated.")
+                print("\n[SUCCESS] System Updated Successfully.")
             else:
-                print("\n[OK] System is healthy and up-to-date!")
-                fix_environment() # Always repair environment path
+                print(f"[OK] System Version v{local['version']} is Ready.")
+                fix_environment()
         else:
-            print(f"\n[!] Cloud Connection Failed.")
+            print(f"\n[!] Connection to Server Failed.")
             
     except Exception as e:
-        print(f"\n[!] Unexpected synchronization error.")
+        print(f"\n[!] Sync Error. Check Internet.")
 
 if __name__ == "__main__":
     check_for_updates()
