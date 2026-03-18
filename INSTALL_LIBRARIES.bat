@@ -1,6 +1,6 @@
 @echo off
 setlocal enabledelayedexpansion
-title AI VISION MASTER v17.5 (PRESET ENGINE)
+title AI VISION MASTER v20.0 (ULTIMATE SPEED)
 
 echo ==========================================
 echo    [*] STEP 1/3: HARDWARE DIAGNOSTIC
@@ -74,7 +74,7 @@ if !errorlevel! neq 0 (
 
 echo.
 echo ==========================================
-echo       [SUCCESS] SYSTEM v17.5 READY
+echo       [SUCCESS] SYSTEM v20.0 READY
 echo ==========================================
-echo [*] Status: v17.5 Master.
+echo [*] Status: v20.0 Master.
 pause

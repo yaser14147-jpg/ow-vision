@@ -108,7 +108,7 @@ class ClassicAHKUI:
         self.current_lang = "AR"
         self.visualize_active = False
         self.aimbot_running = False
-        self.app_version = "19.0"
+        self.app_version = "20.0"
         self.process = None
 
         main_frame = ttk.Frame(root, padding="15 15 15 15")

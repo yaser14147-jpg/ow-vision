@@ -14,7 +14,7 @@ import json
 import os
 import ctypes
 
-# --- [v17.0 HEADSHOT-ONLY VISION - ELITE PURITY] ---
+# --- [v20.0 ULTIMATE SPEED ENGINE - ZERO OVERHEAD] ---
 
 # 1. IMMEDIATE DPI AWARENESS
 try:
@@ -75,17 +75,13 @@ class Detection:
         region = {"top": top, "left": left, "width": CAPTURE_SIZE, "height": CAPTURE_SIZE}
         capture_center = CAPTURE_SIZE // 2
         
-        # Hardware Sync (v17.0 Elite Check)
+        # Hardware Sync (v20.0 Elite Check)
         device = "cuda" if torch.cuda.is_available() else "cpu"
         
         print(f"==========================================")
-        print(f"   [*] HEADSHOT VISION v17.0")
+        print(f"   [*] SPEED ENGINE v20.0")
         print(f"   [*] DEVICE: {device.upper()}")
-        if device == "cuda":
-            print(f"   [*] GPU: {torch.cuda.get_device_name(0)}")
-            print(f"   [*] MODE: HEAD-ONLY PURITY")
-        else:
-            print(f"   [!] WARNING: CPU MODE ACTIVE")
+        print(f"   [*] MODE: ULTIMATE SPEED")
         print(f"==========================================")
 
         base_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -96,22 +92,22 @@ class Detection:
             model = YOLO(model_path)
             model.to(device)
             if device == "cuda": 
-                model.model.half() # Instant GPU Speedup
+                model.model.half() 
         except Exception as e:
-            print(f"[CRITICAL ERROR] Failed to load Brain (v2.pt): {e}")
+            print(f"[ERROR] Engine fail: {e}")
             return
 
         self.vision_window_open = False
         
         with mss() as stc:
             while True:
-                # Instant Config Tracking
+                # Instant Config Checking
                 if time.time() - self.last_config_check > 0.1:
                     self.load_settings()
                     model.conf = self.CONFIDENCE
                     self.last_config_check = time.time()
 
-                # Stealth/Hibernation Mode
+                # Hibernation (Save Energy)
                 if not self.enable_aim and not self.visualize:
                     if self.vision_window_open:
                         cv2.destroyAllWindows()
@@ -135,16 +131,12 @@ class Detection:
                 normalized_fov = self.AIM_FOV * scale_factor
 
                 for box in boxes:
-                    # x1, y1, x2, y2, confidence, class
                     x1, y1, x2, y2, conf, cls = box
-                    
                     if cls not in [0, 1]: continue 
                     
-                    # Target Calculation (v17.0: Aim at HEAD)
+                    # Target Calculation (v20.0: Precision Focus)
                     cx = (x1 + x2) / 2
                     height = y2 - y1
-                    width = x2 - x1
-                    # Core head position
                     cy = y1 + (height * 0.15) 
                     
                     dist = math.dist([cx, cy], [capture_center, capture_center])
@@ -153,57 +145,37 @@ class Detection:
                         closest_dist = dist
                         target = (cx, cy, x1, y1, x2, y2)
                     
-                    # RENDER 'THE EYE' - [v17.0: HEAD ONLY]
+                    # DRAWING BLOCK (Only runs if manually enabled)
                     if self.visualize:
                         is_target = target and target[0] == cx
                         color = (0, 0, 255) if is_target else (0, 255, 0)
-                        
-                        # Calculate a small box around the head only
-                        head_size = int(width * 0.4) # Head is roughly 40% of body width
-                        hx1 = int(cx - head_size)
-                        hy1 = int(cy - head_size)
-                        hx2 = int(cx + head_size)
-                        hy2 = int(cy + head_size)
-                        
-                        # Draw high-precision head box
-                        cv2.rectangle(screenshot, (hx1, hy1), (hx2, hy2), color, 2)
-                        
-                        # Center target dot
+                        width = x2 - x1
+                        head_size = int(width * 0.4)
+                        cv2.rectangle(screenshot, (int(cx - head_size), int(cy - head_size)), (int(cx + head_size), int(cy + head_size)), color, 2)
                         cv2.circle(screenshot, (int(cx), int(cy)), 2, color, -1)
-                        
-                        # Discrete text
-                        cv2.putText(screenshot, f"H: {int(conf*100)}%", (hx1, hy1-5), cv2.FONT_HERSHEY_SIMPLEX, 0.4, color, 1)
 
-                # EXECUTION FLOW
-                trigger = (win32api.GetAsyncKeyState(self.trigger_key) < 0)
-                
-                if target and trigger and self.enable_aim:
+                # AIMING EXECUTION (Highest Performance Branch)
+                if target and self.enable_aim and (win32api.GetAsyncKeyState(self.trigger_key) < 0):
                     tx, ty, x1, y1, x2, y2 = target
-                    dx = tx - capture_center
-                    dy = ty - capture_center
-                    
                     is_on = (x1 <= capture_center <= x2) and (y1 <= capture_center <= y2)
                     smooth = self.SMOOTH_IN if is_on else self.SMOOTH_OUT
                     
-                    # SCALING PARITY (v17.0 Precision)
-                    move_x = (dx * self.SENS_COMP * scale_factor) / smooth
-                    move_y = (dy * self.SENS_COMP * scale_factor) / smooth
+                    move_x = ((tx - capture_center) * self.SENS_COMP * scale_factor) / smooth
+                    move_y = ((ty - capture_center) * self.SENS_COMP * scale_factor) / smooth
                     
                     if int(move_x) != 0 or int(move_y) != 0:
                         win32api.mouse_event(win32con.MOUSEEVENTF_MOVE, int(move_x), int(move_y), 0, 0)
 
-                # DUAL-WINDOW UI ENGINE
+                # VISION DISPLAY BLOCK (Hard-skipped if OFF)
                 if self.visualize:
                     cv2.circle(screenshot, (capture_center, capture_center), int(normalized_fov), (255, 255, 0), 1)
-                    window_name = 'AI VISION EYE v17.0'
-                    cv2.imshow(window_name, screenshot)
-                    cv2.setWindowProperty(window_name, cv2.WND_PROP_TOPMOST, 1)
+                    cv2.imshow('AI VISION EYE v20.0', screenshot)
+                    cv2.setWindowProperty('AI VISION EYE v20.0', cv2.WND_PROP_TOPMOST, 1)
                     cv2.waitKey(1)
                     self.vision_window_open = True
                 else:
                     if self.vision_window_open:
-                        cv2.destroyAllWindows()
-                        self.vision_window_open = False
+                        cv2.destroyAllWindows(); self.vision_window_open = False
                     cv2.waitKey(1)
 
 if __name__ == "__main__":
