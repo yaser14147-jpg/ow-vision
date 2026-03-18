@@ -1,19 +1,19 @@
 @echo off
 setlocal enabledelayedexpansion
-title AI VISION MASTER v17.5 (ELITE ENGINE)
+title AI VISION MASTER v18.0 (ELITE ENGINE)
 
 echo ==========================================
 echo    [*] STEP 1/2: ENGINE SYNCHRONIZATION
 echo ==========================================
 
-:: Ensure Python 3.12
+:: [1] Ensure Python 3.12 
 python --version >nul 2>&1
 if %errorlevel% neq 0 (
     echo [!] Python missing. Downloading 3.12...
     winget install -e --id Python.Python.3.12 --silent --accept-package-agreements
 )
 
-:: Path Lock
+:: [2] Path Lock
 for /f "delims=" %%i in ('where python') do (
     set "ABS_PY=%%i"
     set "ABS_PYW=!ABS_PY:python.exe=pythonw.exe!"
@@ -37,7 +37,7 @@ python -m pip install torch torchvision torchaudio --index-url https://download.
 
 echo.
 echo ==========================================
-echo      [SUCCESS] ELITE SYSTEM READY!
-echo    GPU ACCELERATION ACTIVATED (v17.5)
+echo       [SUCCESS] SYSTEM v18.0 READY!
+echo    GPU ACCELERATION ACTIVATED (v18.0)
 echo ==========================================
 timeout /t 5
