@@ -1,6 +1,6 @@
 @echo off
 setlocal enabledelayedexpansion
-title AI VISION MASTER UPDATE v3.3 (ULTIMATE REPAIR)
+title AI VISION MASTER UPDATE v3.4 (ULTIMATE REPAIR)
 
 echo ==========================================
 echo    [*] Searching for System Updates...
@@ -13,6 +13,7 @@ set "UPDATER_URL=https://raw.githubusercontent.com/%USERNAME%/%REPO%/%BRANCH%/ow
 set "LOCAL_UPDATER=%~dp0ow-vision\scripts\updater.py"
 
 echo [+] Refreshing Sync Engine...
+:: Cache bust with milliseconds if possible
 set /a "ts=%time:~0,2%%time:~3,2%%time:~6,2%"
 curl -L -s "!UPDATER_URL!?t=!ts!" -o "!LOCAL_UPDATER!"
 
@@ -27,6 +28,6 @@ python "!LOCAL_UPDATER!"
 
 echo.
 echo ==========================================
-echo [OK] Synchronization Complete (v3.3)
+echo [OK] Synchronization Complete (v3.4)
 echo ==========================================
 pause

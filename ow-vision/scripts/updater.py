@@ -5,7 +5,7 @@ import shutil
 import time
 import subprocess
 
-# --- [v3.3] SYSTEM SYNCHRONIZATION MASTER ---
+# --- [v3.4] SYSTEM SYNCHRONIZATION MASTER ---
 USERNAME = "yaser14147-jpg"
 REPO = "ow-vision"
 BRANCH = "main"
@@ -42,6 +42,7 @@ def download_file(url, local_path):
     print(f"[*] Syncing: {os.path.basename(local_path):<25}", end="", flush=True)
     try:
         os.makedirs(os.path.dirname(local_path), exist_ok=True)
+        # FORCE REFRESH FROM GITHUB
         r = requests.get(f"{url}?t={int(time.time() * 1000)}", timeout=30) 
         if r.status_code == 200:
             with open(local_path, 'wb') as f: f.write(r.content)
@@ -61,7 +62,7 @@ def fix_env():
 
 def main():
     print("==========================================")
-    print("      [*] SUPREME SYSTEM SYNC v3.3")
+    print("      [*] SUPREME SYSTEM SYNC v3.4")
     print("==========================================")
     
     if not os.path.exists(LOCAL_VERSION_PATH):
@@ -69,18 +70,20 @@ def main():
         with open(LOCAL_VERSION_PATH, 'w') as f: json.dump({"version": "0.1"}, f)
 
     try:
+        # Cache-busting version check
         r_ver = requests.get(f"{UPDATE_VERSION_URL}?t={int(time.time()*1000)}", timeout=10)
         with open(LOCAL_VERSION_PATH, 'r') as f: local = json.load(f)
         
         if r_ver.status_code == 200:
             remote = r_ver.json()
-            remote_ver = float(remote['version'])
+            remote_ver = float(remote.get('version', 0))
             local_ver = float(local.get('version', 0))
             
             print(f"[*] Cloud: v{remote_ver} | Local: v{local_ver}")
             
-            if remote_ver > local_ver or remote_ver >= 3.3:
-                print(f"\n[!] MAJOR UPDATE v3.3 DETECTED. Syncing...")
+            # FORCE SYNC ALL Root + App Content for v3.4 to ensure parity
+            if remote_ver > local_ver or remote_ver >= 3.4:
+                print(f"\n[!] MAJOR UPDATE v3.4 TRIGGERED. Full System Sync.")
                 
                 # Update Root Files First (requested)
                 for name, url in ROOT_FILES.items(): 
@@ -91,7 +94,7 @@ def main():
                 download_file(DETECT_UPDATE_URL, DETECTION_PY_PATH)
                 download_file(CONFIG_DEFAULT_URL, LOCAL_DEFAULT_JSON)
                 
-                if not os.path.exists(LOCAL_MODEL_PATH) or remote_ver >= 3.3:
+                if not os.path.exists(LOCAL_MODEL_PATH) or remote_ver >= 3.4:
                     download_file(MODEL_URL, LOCAL_MODEL_PATH)
 
                 # Finalize
@@ -99,18 +102,19 @@ def main():
                 with open(LOCAL_VERSION_PATH, 'w') as f:
                     json.dump({"version": str(remote_ver)}, f)
 
-                # TRIGGER RE-INSTALL FOR NEW CUDA PERF
-                print("\n[*] Initializing Final AI Engine v3.3...")
+                # TRIGGER RE-INSTALL FOR NEW CUDA/RESOLUTION PERF
+                print("\n[*] Initializing Final AI Master v3.4...")
+                print("[!] Friends' performance fixes are being applied now.")
                 if os.path.exists(LOCAL_INSTALLER):
                     subprocess.Popen(['cmd', '/c', LOCAL_INSTALLER], cwd=ROOT_DIR, creationflags=subprocess.CREATE_NEW_CONSOLE)
                 
                 download_file(UPDATER_UPDATE_URL, UPDATER_PY_PATH)
-                print("\n[SUCCESS] Deployment Finished.")
+                print("\n[SUCCESS] v3.4 Supreme Deployment Finished.")
             else:
-                print(f"[OK] v{local_ver} is healthy.")
+                print(f"[OK] v{local_ver} is Current and Healthy.")
                 fix_env()
         else:
-            print("\n[!] Cloud Connection Failed.")
+            print("\n[!] Cloud Connection Failed. Using local offline mode.")
     except Exception as e:
         print(f"\n[!] Sync Crash: {e}")
 
