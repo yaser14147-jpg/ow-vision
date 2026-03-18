@@ -1,17 +1,16 @@
 @echo off
 setlocal enabledelayedexpansion
-title AI VISION MASTER v3.10 (SMART-PATH ENGINE)
+title AI VISION MASTER v3.12 (ULTIMATE SYNC)
 
 echo ==========================================
 echo    [*] STEP 1/3: SMART ENVIRONMENT SEARCH
 echo ==========================================
 
-:: [1] Search for Python 3.12 in all locations (The "Ninja" way)
+:: [1] Search for Python 3.12 in all locations
 echo [*] Looking for the Elite Engine (Python 3.12)...
 set "BEST_PY="
 set "PY_DONE=0"
 
-:: Check all python instances found by Windows
 for /f "delims=" %%i in ('where python') do (
     if "!PY_DONE!"=="0" (
         set "TEST_PY=%%i"
@@ -33,17 +32,17 @@ if "!BEST_PY!"=="" (
     exit
 )
 
-:: [3] Lock the 3.12 Path (Bypass 3.14 completely)
+:: [3] Lock the 3.12 Path
 set "ABS_PY=!BEST_PY!"
 set "ABS_PYW=!ABS_PY:python.exe=pythonw.exe!"
 if exist "!ABS_PYW!" (
     echo !ABS_PYW! > "%~dp0python_path.txt"
-    echo [OK] 3.12 Engine Locked. Bypassing other versions...
+    echo [OK] 3.12 Engine Locked.
 )
 
 echo.
 echo ==========================================
-echo    [*] STEP 2/3: FORCED LIBRARY SYNC (v3.10)
+echo    [*] STEP 2/3: FORCED LIBRARY SYNC (v3.12)
 echo ==========================================
 echo [*] Using Engine: !ABS_PY!
 "!ABS_PY!" -m pip install --upgrade pip --quiet
@@ -55,11 +54,11 @@ echo [!] This is the 10x SPEED BOOST. Initializing...
 
 echo.
 echo ==========================================
-echo       [SUCCESS] SYSTEM v3.10 READY
+echo       [SUCCESS] SYSTEM v3.12 READY
 echo ==========================================
 echo [*] Final Performance Test...
 "!ABS_PY!" -c "import torch; print('+++ GPU STATUS: ACTIVE (MAX PERFORMANCE) +++' if torch.cuda.is_available() else '--- GPU STATUS: NOT FOUND (STILL SLOW CPU) ---'); print('Device Name:', torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'None')"
 
 echo.
-echo [OK] Optimization finished. Enjoy the level sync!
+echo [OK] Optimization finished. Version: 3.12
 pause

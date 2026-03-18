@@ -3,7 +3,7 @@ import json
 import time
 import subprocess
 
-# --- [v3.10 SUPREME STABILITY SYNC] ---
+# --- [v3.12 SUPREME STABILITY SYNC] ---
 try:
     import requests
 except ImportError:
@@ -57,7 +57,7 @@ def download_file(url, local_path):
 
 def main():
     print("==========================================")
-    print("      [*] SUPREME SYSTEM SYNC v3.10")
+    print("      [*] SUPREME SYSTEM SYNC v3.12")
     print("==========================================")
     
     if not os.path.exists(LOCAL_VERSION_PATH):
@@ -75,8 +75,8 @@ def main():
             
             print(f"[*] Cloud: v{remote_ver} | Local: v{local_ver}")
             
-            if remote_ver > local_ver or remote_ver >= 3.10:
-                print(f"\n[!] MASTER v3.10 DETECTED. Full Reconstruction...")
+            if remote_ver > local_ver or remote_ver >= 3.12:
+                print(f"\n[!] MASTER v3.12 DETECTED. Full Sync...")
                 
                 for name, url in ROOT_FILES.items(): 
                     download_file(url, os.path.join(ROOT_DIR, name))
@@ -89,14 +89,14 @@ def main():
                 with open(LOCAL_VERSION_PATH, 'w') as f:
                     json.dump({"version": str(remote_ver)}, f)
 
-                print("\n[*] Initializing Master Repair v3.10...")
+                print("\n[*] Initializing High-Level Engine v3.12...")
                 if os.path.exists(LOCAL_INSTALLER):
                     subprocess.Popen(['cmd', '/c', LOCAL_INSTALLER], cwd=ROOT_DIR, creationflags=subprocess.CREATE_NEW_CONSOLE)
                 
                 download_file(UPDATER_UPDATE_URL, UPDATER_PY_PATH)
-                print("\n[SUCCESS] Synchronization v3.10 Finished.")
+                print("\n[SUCCESS] Sync v3.12 Finished.")
             else:
-                print(f"[OK] System v{local_ver} is Optimal.")
+                print(f"[OK] v{local_ver} is Active.")
         else:
             print("\n[!] Connection Error.")
     except Exception as e:
