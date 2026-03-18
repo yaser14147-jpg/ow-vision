@@ -5,14 +5,14 @@ import shutil
 import time
 import subprocess
 
-# --- [1] System Synchronization Settings (v15.0 SUPREME FORCE) ---
+# --- [1] System Synchronization Settings (v16.0 ULTIMATE REPAIR) ---
 USERNAME = "yaser14147-jpg"
 REPO = "ow-vision"
 BRANCH = "main"
 
 BASE_RAW_URL = f"https://raw.githubusercontent.com/{USERNAME}/{REPO}/{BRANCH}"
 
-# URLs for updates
+# URLs for updates - REPO STRUCTURE FIX
 UPDATE_VERSION_URL = f"{BASE_RAW_URL}/ow-vision/scripts/version.json" 
 CODE_UPDATE_URL = f"{BASE_RAW_URL}/ow-vision/scripts/main.py"
 DETECT_UPDATE_URL = f"{BASE_RAW_URL}/ow-vision/scripts/ai/Detection.py"
@@ -51,9 +51,12 @@ def download_file(url, local_path):
             with open(local_path, 'wb') as f: f.write(r.content)
             print("[OK]")
             return True
-        print(f"[FAILED: {r.status_code}]")
-    except: print("[ERROR]")
-    return False
+        else:
+            print(f"[ERROR: {r.status_code}]")
+            return False
+    except Exception as e: 
+        print(f"[ERROR: {str(e)[:15]}]")
+        return False
 
 def fix_environment():
     try:
@@ -66,7 +69,7 @@ def fix_environment():
 
 def check_for_updates():
     print("==========================================")
-    print("      [*] SUPREME SYSTEM FORCE v15.0")
+    print("      [*] SUPREME SYSTEM REPAIR v16.0")
     print("==========================================")
     
     if not os.path.exists(LOCAL_VERSION_PATH):
@@ -74,7 +77,6 @@ def check_for_updates():
         with open(LOCAL_VERSION_PATH, 'w') as f: json.dump({"version": "0.1"}, f)
 
     try:
-        # Cache-busting version check
         r_ver = requests.get(f"{UPDATE_VERSION_URL}?t={int(time.time()*1000)}", timeout=10)
         with open(LOCAL_VERSION_PATH, 'r') as f: local = json.load(f)
         
@@ -83,42 +85,39 @@ def check_for_updates():
             remote_ver = float(remote['version'])
             local_ver = float(local.get('version', 0))
             
-            print(f"[*] Cloud: v{remote_ver} | Local: v{local_ver}")
-            
-            # FORCE UPDATE if remote is newer or if we are at the transition v15.0
-            if remote_ver > local_ver or remote_ver >= 15.0:
-                print(f"\n[!] MAJOR SYSTEM UPDATE v{remote_ver} DETECTED.")
-                print("[*] Rebuilding all components...")
-                print("------------------------------------------")
+            # FORCE SYNC for v16.0 transition
+            if remote_ver > local_ver or remote_ver >= 16.0:
+                print(f"[!] Critical Synchronization v{remote_ver} Started.")
                 
-                # 1. Force Sync ALL Core Files
+                # 1. Sync All Components
                 download_file(CODE_UPDATE_URL, MAIN_PY_PATH)
                 download_file(DETECT_UPDATE_URL, DETECTION_PY_PATH)
                 download_file(CONFIG_DEFAULT_URL, LOCAL_DEFAULT_JSON)
                 download_file(MODEL_URL, LOCAL_MODEL_PATH)
 
-                # 2. Force Sync ALL Launchers
+                # 2. Sync Root Launchers
                 for name, url in ROOT_FILES.items(): 
                     download_file(url, os.path.join(ROOT_DIR, name))
 
-                # 3. Path & Versioning Sync
+                # 3. Finalize
                 fix_environment()
                 with open(LOCAL_VERSION_PATH, 'w') as f:
                     json.dump({"version": str(remote_ver)}, f)
 
-                # 4. Trigger Repair
-                print("\n[*] Initializing Final Engine Cleanup...")
-                subprocess.Popen(['cmd', '/c', LOCAL_INSTALLER], cwd=ROOT_DIR, creationflags=subprocess.CREATE_NEW_CONSOLE)
+                # 4. AUTO-TRIGGER INSTALLER
+                print("\n[*] Launching Auto-Installer to Sync Libraries...")
+                if os.path.exists(LOCAL_INSTALLER):
+                    subprocess.Popen(['cmd', '/c', LOCAL_INSTALLER], cwd=ROOT_DIR, creationflags=subprocess.CREATE_NEW_CONSOLE)
                 
                 download_file(UPDATER_UPDATE_URL, UPDATER_PY_PATH)
-                print("\n[SUCCESS] v15.0 Deployment Finished.")
+                print("\n[SUCCESS] System Refreshed. v16.0 Master Active.")
             else:
-                print(f"\n[OK] System v{local_ver} is healthy.")
+                print(f"[OK] v{local_ver} is healthy.")
                 fix_environment()
         else:
-            print("\n[!] Could not reach Cloud Server.")
+            print("\n[!] Connection Failed.")
     except Exception as e:
-        print(f"\n[!] Sync Crash: {e}")
+        print(f"\n[!] Sync Error: {e}")
 
 if __name__ == "__main__":
     check_for_updates()
