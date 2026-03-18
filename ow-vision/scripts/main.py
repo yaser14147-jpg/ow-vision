@@ -81,7 +81,7 @@ class ClassicAHKUI:
         style = ttk.Style(); style.theme_use('vista')
         self.root.eval('tk::PlaceWindow . center')
         
-        self.current_lang = "AR"; self.visualize_active = False; self.aimbot_running = False; self.app_version = "23.0"; self.process = None
+        self.current_lang = "AR"; self.visualize_active = False; self.aimbot_running = False; self.app_version = "24.0"; self.process = None
         
         main_frame = ttk.Frame(root, padding="10 10 10 10")
         main_frame.pack(fill=tk.BOTH, expand=True)
@@ -163,9 +163,9 @@ class ClassicAHKUI:
         if self.stealth_active: self.root.after(10, self.apply_stealth_capture)
 
     def apply_preset(self, level):
-        p = {"Legit": {"aim_fov": 75.0, "sens_comp": 2.6, "smooth_in": 1.3, "smooth_out": 3.8, "confidence": 0.3},
-             "Normal": {"aim_fov": 120.0, "sens_comp": 4.5, "smooth_in": 1.1, "smooth_out": 2.2, "confidence": 0.25},
-             "High": {"aim_fov": 200.0, "sens_comp": 7.0, "smooth_in": 0.8, "smooth_out": 1.2, "confidence": 0.15}}
+        p = {"Legit": {"aim_fov": 75.0, "sens_comp": 3.0, "smooth_in": 1.6, "smooth_out": 4.5, "confidence": 0.35},
+             "Normal": {"aim_fov": 110.0, "sens_comp": 4.5, "smooth_in": 1.4, "smooth_out": 3.0, "confidence": 0.30},
+             "High": {"aim_fov": 160.0, "sens_comp": 6.5, "smooth_in": 1.2, "smooth_out": 2.2, "confidence": 0.25}}
         if level in p: self.update_entries(p[level]); save_active_config(self.get_current_values())
 
     def toggle_lang(self): self.set_lang("EN" if self.current_lang == "AR" else "AR")
