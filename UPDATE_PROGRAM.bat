@@ -1,6 +1,6 @@
 @echo off
 setlocal enabledelayedexpansion
-title AI VISION TURBO SYNC v6.3
+title AI VISION TURBO SYNC v6.5
 
 echo ==========================================
 echo    [*] Searching for System Updates...

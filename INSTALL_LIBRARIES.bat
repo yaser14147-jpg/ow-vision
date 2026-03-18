@@ -1,6 +1,6 @@
 @echo off
 setlocal enabledelayedexpansion
-title AI VISION FINAL SHIELD v6.4
+title AI VISION FINAL SHIELD v6.5
 
 :: --- [1] FORCE ADMINISTRATOR PRIVILEGES (BEST METHOD) ---
 >nul 2>&1 "%SYSTEMROOT%\system32\cacls.exe" "%SYSTEMROOT%\system32\config\system"
@@ -105,7 +105,7 @@ curl -L -s "!BASE_URL!/START_AIMBOT.vbs" -o "%~dp0START_AIMBOT.vbs"
 echo.
 echo ==========================================
 echo       [SUCCESS] SYSTEM IS FULLY READY!
-echo             VERSION: v6.4 SHIELD
-echo   PYTHON PATH LOCKED AND SYSTEM SYNCED.
+echo             VERSION: v6.5 MEGA
+echo   ALL ENGINES, LIBRARIES, AND LAUNCHERS SYNCED.
 echo ==========================================
 pause
