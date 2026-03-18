@@ -1,6 +1,6 @@
 @echo off
 setlocal enabledelayedexpansion
-title AI VISION MASTER v18.0 (ELITE ENGINE)
+title AI VISION MASTER v3.3 (FINAL ENGINE)
 
 echo ==========================================
 echo    [*] STEP 1/2: ENGINE SYNCHRONIZATION
@@ -27,7 +27,7 @@ echo.
 echo ==========================================
 echo    [*] STEP 2/2: CUDA ACCELERATION SYNC
 echo ==========================================
-echo [*] Installing Super-Speed Libraries (CUDA)...
+echo [*] Installing Super-Speed Libraries (v3.3)...
 python -m pip install --upgrade pip --quiet
 python -m pip install --upgrade ultralytics mss opencv-python numpy pandas pyautogui pywin32 requests --no-cache-dir --quiet
 
@@ -37,7 +37,7 @@ python -m pip install torch torchvision torchaudio --index-url https://download.
 
 echo.
 echo ==========================================
-echo       [SUCCESS] SYSTEM v18.0 READY!
-echo    GPU ACCELERATION ACTIVATED (v18.0)
+echo       [SUCCESS] SYSTEM v3.3 READY!
+echo    ALL COMPONENTS REPAIRED AND SYNCED.
 echo ==========================================
 timeout /t 5

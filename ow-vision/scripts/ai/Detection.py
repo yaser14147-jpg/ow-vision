@@ -7,12 +7,20 @@ from ultralytics import YOLO
 import pyautogui
 import win32api
 import win32con
+import win32process
 import math
 import torch
 import json
 import os
+import ctypes
 
-# --- [v17.0 HYPER-SYNC ENGINE - THE DEFINITIVE FIX] ---
+# --- [v3.3 SUPREME ENGINE - THE FINAL EVOLUTION] ---
+
+# 1. FORCE DPI AWARENESS (Fixes the "Not Hitting" issue on 125%/150% scaling)
+try:
+    ctypes.windll.shcore.SetProcessDpiAwareness(1) # PROCESS_SYSTEM_DPI_AWARE
+except:
+    ctypes.windll.user32.SetProcessDPIAware()
 
 class Detection:
     def __init__(self):
@@ -48,11 +56,18 @@ class Detection:
         except: pass
 
     def start(self):
-        # 1. Screen Resolution Intelligence
-        SCREEN_W, SCREEN_H = pyautogui.size()
-        scale_factor = SCREEN_H / 1080.0 # Standardize based on 1080p feel
+        # 2. BOOST PROCESS PRIORITY (Fixes "Laggy Aim" vs Friends)
+        process = win32process.GetCurrentProcess()
+        win32process.SetPriorityClass(process, win32process.HIGH_PRIORITY_CLASS)
+
+        # 3. Real Pixel Detection (Physical Rect)
+        SCREEN_W = ctypes.windll.user32.GetSystemMetrics(0)
+        SCREEN_H = ctypes.windll.user32.GetSystemMetrics(1)
         
-        # 2. Optimized Capture Region (400x400 virtual area)
+        # Standardize based on 1080p baseline
+        scale_factor = SCREEN_H / 1080.0 
+        
+        # Optimized Capture Region (400x400 area)
         CAPTURE_SIZE = int(400 * scale_factor)
         left = (SCREEN_W - CAPTURE_SIZE) // 2
         top = (SCREEN_H - CAPTURE_SIZE) // 2
@@ -60,26 +75,25 @@ class Detection:
         region = {"top": top, "left": left, "width": CAPTURE_SIZE, "height": CAPTURE_SIZE}
         capture_center = CAPTURE_SIZE // 2
         
-        # 3. Path & Device Calibration
+        # 4. Device Calibration & Status Log
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        with open("gpu_status.txt", "w") as f: 
+            f.write(f"V3.3 ENGINE ACTIVE\nDEVICE: {device.upper()}\nMODE: SUPREME")
+
         base_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         model_path = os.path.join(base_root, 'models', 'v2.pt')
-        device = "cuda" if torch.cuda.is_available() else "cpu"
-        
-        print(f"[*] Engine v17.0 Active | Res: {SCREEN_W}x{SCREEN_H} | Scale: {scale_factor:.2f} | Device: {device.upper()}")
         
         try:
             model = YOLO(model_path)
             model.to(device)
-            if device == "cuda": model.model.half() # Instant speed on GPUs
-        except Exception as e:
-            return
+            if device == "cuda": model.model.half() 
+        except: return
 
         self.vision_window_open = False
         
         with mss() as stc:
             while True:
-                # Dynamic Setting Sync
-                if time.time() - self.last_config_check > 0.5:
+                if time.time() - self.last_config_check > 1.0:
                     self.load_settings()
                     model.conf = self.CONFIDENCE
                     self.last_config_check = time.time()
@@ -91,11 +105,11 @@ class Detection:
                     time.sleep(0.1)
                     continue
 
-                # Multi-threaded image capture
+                # Capture
                 img = np.array(stc.grab(region))
                 screenshot = cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
 
-                # AI Inference (Detection)
+                # Inference
                 results = model.predict(screenshot, save=False, verbose=False, device=device, half=(device=="cuda"))
                 
                 if len(results[0].boxes) > 0:
@@ -118,37 +132,29 @@ class Detection:
                     if dist < closest_dist and dist <= normalized_fov:
                         closest_dist = dist
                         target = (cx, cy, x1, y1, x2, y2)
-                    
-                    if self.visualize:
-                        cv2.rectangle(screenshot, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 2)
-
-                # AIM LOCK LOGIC
+                
+                # Logic Execution
                 trigger = (win32api.GetAsyncKeyState(self.trigger_key) < 0)
                 
                 if target and trigger and self.enable_aim:
                     tx, ty, x1, y1, x2, y2 = target
-                    
-                    # Relational Mapping (Distance from center)
                     dx = tx - capture_center
                     dy = ty - capture_center
                     
-                    # Intelligent Locking (Stickiness)
                     is_on = (x1 <= capture_center <= x2) and (y1 <= capture_center <= y2)
                     smooth = self.SMOOTH_IN if is_on else self.SMOOTH_OUT
                     
-                    # [v17.0 FIX]: MULTIPLY by scale_factor to compensate for high resolutions (4K)
-                    # This makes 2.6 sensitivity FEEL the same everywhere.
+                    # [v3.3]: Precise Movement Scaling (HYPER-LOCK)
                     move_x = (dx * self.SENS_COMP * scale_factor) / smooth
                     move_y = (dy * self.SENS_COMP * scale_factor) / smooth
                     
                     if int(move_x) != 0 or int(move_y) != 0:
                         win32api.mouse_event(win32con.MOUSEEVENTF_MOVE, int(move_x), int(move_y), 0, 0)
 
-                # VISION OVERLAY
                 if self.visualize:
                     cv2.circle(screenshot, (capture_center, capture_center), int(normalized_fov), (255, 255, 0), 1)
-                    cv2.imshow('AI SUPREME v17.0', screenshot)
-                    cv2.setWindowProperty('AI SUPREME v17.0', cv2.WND_PROP_TOPMOST, 1)
+                    cv2.imshow('AI VISION MASTER v3.3', screenshot)
+                    cv2.setWindowProperty('AI VISION MASTER v3.3', cv2.WND_PROP_TOPMOST, 1)
                     cv2.waitKey(1)
                     self.vision_window_open = True
                 else:
