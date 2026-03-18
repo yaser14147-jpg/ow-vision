@@ -4,7 +4,7 @@ import os
 import shutil
 import time
 
-# --- [1] System Synchronization Settings (v10.0 MASTER SYNC) ---
+# --- [1] System Synchronization Settings (v11.0 ULTIMATE) ---
 USERNAME = "yaser14147-jpg"
 REPO = "ow-vision"
 BRANCH = "main"
@@ -57,7 +57,6 @@ def fix_environment():
         import sys
         base = sys.executable.lower()
         pyw = base.replace("python.exe", "pythonw.exe")
-        # Try pythonw first, fallback to python
         target = pyw if os.path.exists(pyw) else base
         with open(PYTHON_PATH_FILE, "w") as f: f.write(target)
         print(f"[OK] Environment Locked.")
@@ -65,7 +64,7 @@ def fix_environment():
 
 def check_for_updates():
     print("==========================================")
-    print("      [*] System Synchronization v10.0")
+    print("      [*] System Synchronization v11.0")
     print("==========================================")
     
     if not os.path.exists(LOCAL_VERSION_PATH):
@@ -84,7 +83,7 @@ def check_for_updates():
                 download_file(CODE_UPDATE_URL, MAIN_PY_PATH)
                 download_file(DETECT_UPDATE_URL, DETECTION_PY_PATH)
                 download_file(CONFIG_DEFAULT_URL, LOCAL_DEFAULT_JSON)
-                if not os.path.exists(LOCAL_MODEL_PATH) or float(remote['version']) >= 10.0:
+                if not os.path.exists(LOCAL_MODEL_PATH) or float(remote['version']) >= 11.0:
                     download_file(MODEL_URL, LOCAL_MODEL_PATH)
                 fix_environment()
                 download_file(UPDATER_UPDATE_URL, UPDATER_PY_PATH)
