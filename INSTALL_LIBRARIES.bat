@@ -1,6 +1,6 @@
 @echo off
 setlocal enabledelayedexpansion
-title AI VISION ULTIMATE INSTALLER v5.0
+title AI VISION ULTIMATE INSTALLER v5.2
 
 :: --- [1] FORCE ADMINISTRATOR PRIVILEGES (BEST METHOD) ---
 >nul 2>&1 "%SYSTEMROOT%\system32\cacls.exe" "%SYSTEMROOT%\system32\config\system"
@@ -14,7 +14,7 @@ if '%errorlevel%' neq '0' (
 if exist "%temp%\getadmin.vbs" ( del "%temp%\getadmin.vbs" )
 
 echo ==========================================
-echo    [+] STEP 1/3: BRUTE-FORCE UPDATING...
+echo    [+] STEP 1/4: UPDATING ENVIRONMENT...
 echo ==========================================
 
 :: Function to update EVERY python instance found on the machine
@@ -58,23 +58,24 @@ if "!found_any!"=="0" (
 
 echo.
 echo ==========================================
-echo    [+] STEP 2/3: FIXING VBS STARTUP...
+echo    [+] STEP 3/4: SYNCING LAUNCHERS...
 echo ==========================================
 
-:: Create a helper file that tells the VBS which python worked
-for /f "delims=" %%i in ('where python 2^>nul') do (
-    set "BEST_PY=%%i"
-)
-:: Replace python.exe with pythonw.exe for the background runner
-set "BEST_PYW=!BEST_PY:python.exe=pythonw.exe!"
-echo !BEST_PYW! > "%~dp0python_path.txt"
+:: Download core launchers if missing or to ensure latest
+set "USERNAME=yaser14147-jpg"
+set "REPO=ow-vision"
+set "BRANCH=main"
+set "BASE_URL=https://raw.githubusercontent.com/!USERNAME!/!REPO!/!BRANCH!"
 
-echo [OK] Saved working Python path for START_AIMBOT.vbs
+echo [+] Syncing UPDATE_PROGRAM.bat...
+curl -L -s "!BASE_URL!/UPDATE_PROGRAM.bat" -o "%~dp0UPDATE_PROGRAM.bat"
+echo [+] Syncing START_AIMBOT.vbs...
+curl -L -s "!BASE_URL!/START_AIMBOT.vbs" -o "%~dp0START_AIMBOT.vbs"
 
 echo.
 echo ==========================================
 echo       [SUCCESS] SYSTEM IS FULLY READY!
-echo             VERSION: v5.0 ULTIMATE
-echo   ALL LIBRARIES AND ENGINES ARE UP-TO-DATE.
+echo             VERSION: v5.2 MASTER
+echo   ALL ENGINES, LIBRARIES, AND LAUNCHERS SYNCED.
 echo ==========================================
 pause
