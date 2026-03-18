@@ -1,6 +1,6 @@
 @echo off
 setlocal enabledelayedexpansion
-title AI VISION MASTER UPDATE v12.0 (STamina Edition)
+title AI VISION MASTER UPDATE v15.0 (SUPREME FORCE)
 
 :: [!] CRITICAL UPDATE: STAYS OPEN UNTIL DISMISSED
 
@@ -34,6 +34,6 @@ python "!LOCAL_UPDATER!"
 
 echo.
 echo ==========================================
-echo [OK] Synchronization Complete (v12.0)
+echo [OK] Synchronization Complete (v15.0)
 echo ==========================================
 pause

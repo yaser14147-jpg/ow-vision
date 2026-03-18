@@ -118,7 +118,7 @@ class ClassicAHKUI:
         self.aimbot_running = False
         
         # تحميل رقم الإصدار
-        self.app_version = "12.0"
+        self.app_version = "15.0"
         try:
             v_path = os.path.join(os.path.dirname(__file__), "version.json")
             if os.path.exists(v_path):
