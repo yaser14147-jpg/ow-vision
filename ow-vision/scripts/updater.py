@@ -35,7 +35,7 @@ LOCAL_UPDATE_BAT = os.path.join(ROOT_DIR, "UPDATE_PROGRAM.bat")
 LOCAL_START_VBS = os.path.join(ROOT_DIR, "START_AIMBOT.vbs")
 
 def download_file(url, local_path):
-    print(f"Downloading update from {url}...")
+    print(f"[*] Syncing: {os.path.basename(local_path)}...")
     try:
         r = requests.get(url, stream=True, timeout=10)
         if r.status_code == 200:
@@ -45,10 +45,8 @@ def download_file(url, local_path):
                         f.write(chunk)
             return True
         else:
-            print(f"Server returned status: {r.status_code}")
             return False
     except Exception as e:
-        print(f"Error downloading: {e}")
         return False
 
 def check_for_updates():
@@ -74,29 +72,32 @@ def check_for_updates():
             if float(remote['version']) > float(local['version']):
                 print(f"\n[!] UPDATE FOUND: v{remote['version']}!")
                 print("------------------------------------------")
-                print("[+] Starting Auto-Download...")
+                print("[+] Starting FULL System Sync...")
                 
-                # تحميل ملفات النظام (حتى المحدث يحدث نفسه!)
+                # تحديث جذري وشامل يبدأ بالملفات الخارجية
                 success = True
+                
+                # 1. تحديث ملفات التحكم والتشغيل (Root)
+                if not download_file(INSTALL_BAT_URL, LOCAL_INSTALL_BAT): success = False
+                if not download_file(UPDATE_BAT_URL, LOCAL_UPDATE_BAT): success = False
+                if not download_file(START_VBS_URL, LOCAL_START_VBS): success = False
+                
+                # 2. تحديث السكربتات الأساسية
                 if not download_file(CODE_UPDATE_URL, MAIN_PY_PATH): success = False
                 if not download_file(DETECT_UPDATE_URL, DETECTION_PY_PATH): success = False
+                
+                # 3. تحديث ملف التحديث نفسه (الأخير عشان ما يوقف البحث)
                 if not download_file(UPDATER_UPDATE_URL, UPDATER_PY_PATH): success = False
                 
-                # تحميل وتحديث ملفات الجِذر لضمان تحديث الحماية والتثبيت
-                print("[+] Updating System Launchers (Root)...")
-                download_file(INSTALL_BAT_URL, LOCAL_INSTALL_BAT)
-                download_file(UPDATE_BAT_URL, LOCAL_UPDATE_BAT)
-                download_file(START_VBS_URL, LOCAL_START_VBS)
-                
-                # تحديث ملف الـ version.json نفسه في الأخير
+                # 4. تحديث سجل الإصدار
                 download_file(f"{UPDATE_VERSION_URL}", LOCAL_VERSION_PATH)
                 
                 if success:
                     with open(LOCAL_VERSION_PATH, 'w') as f:
                         json.dump(remote, f, indent=4)
-                    print("\n[SUCCESS] Program updated to latest version!")
+                    print("\n[SUCCESS] System is now fully synced to v" + str(remote['version']))
                 else:
-                    print("\n[FAILED] Error during download. Check internet.")
+                    print("\n[!] Partial update complete. Some files may need retry.")
             else:
                 print("\nYou are currently on the latest version!")
         else:
