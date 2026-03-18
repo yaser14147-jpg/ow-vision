@@ -1,6 +1,6 @@
 @echo off
 setlocal enabledelayedexpansion
-title AI VISION MASTER UPDATE v3.12 (SMART SYNC)
+title AI VISION MASTER UPDATE v16.0 (SUPREME FORCE)
 
 echo ==========================================
 echo    [*] SEARCHING FOR SYSTEM UPDATES...
@@ -19,9 +19,11 @@ if %errorlevel% neq 0 (
     python -m pip install requests --quiet
 )
 
-echo [+] Refreshing Sync Engine (v3.12)...
-:: Cache bust using %RANDOM%
-curl -L -s "!UPDATER_URL!?t=%RANDOM%" -o "!LOCAL_UPDATER!"
+echo [+] Refreshing Sync Engine (v16.0 FORCE)...
+:: AGGRESSIVE CACHE BUSTING
+set "nonce=%date:~-4%%date:~4,2%%date:~7,2%%time:~0,2%%time:~3,2%%time:~6,2%%time:~9,2%"
+set "nonce=%nonce: =0%"
+curl -L -s "!UPDATER_URL!?nocache=!nonce!" -o "!LOCAL_UPDATER!"
 
 python --version >nul 2>&1
 if %errorlevel% neq 0 (
@@ -35,6 +37,6 @@ python "!LOCAL_UPDATER!"
 
 echo.
 echo ==========================================
-echo [OK] Synchronization Complete (v3.12)
+echo [OK] Synchronization Complete (v16.0)
 echo ==========================================
 pause

@@ -3,7 +3,7 @@ import json
 import time
 import subprocess
 
-# --- [v3.12 SUPREME STABILITY SYNC] ---
+# --- [v16.0 SUPREME FORCE SYNC] ---
 try:
     import requests
 except ImportError:
@@ -46,7 +46,8 @@ def download_file(url, local_path):
     print(f"[*] Syncing: {os.path.basename(local_path):<25}", end="", flush=True)
     try:
         os.makedirs(os.path.dirname(local_path), exist_ok=True)
-        r = requests.get(f"{url}?t={int(time.time() * 1000)}", timeout=30) 
+        # SUPREME CACHE BUST
+        r = requests.get(f"{url}?nonce={int(time.time() * 1000)}", timeout=30) 
         if r.status_code == 200:
             with open(local_path, 'wb') as f: f.write(r.content)
             print("[OK]")
@@ -57,15 +58,20 @@ def download_file(url, local_path):
 
 def main():
     print("==========================================")
-    print("      [*] SUPREME SYSTEM SYNC v3.12")
+    print("      [*] SUPREME SYSTEM SYNC v16.0")
     print("==========================================")
     
-    if not os.path.exists(LOCAL_VERSION_PATH):
-        os.makedirs(os.path.dirname(LOCAL_VERSION_PATH), exist_ok=True)
-        with open(LOCAL_VERSION_PATH, 'w') as f: json.dump({"version": "0.1"}, f)
+    # Force reset if old version file exists
+    if os.path.exists(LOCAL_VERSION_PATH):
+        try:
+            with open(LOCAL_VERSION_PATH, 'r') as f:
+                vdata = json.load(f)
+                if float(vdata.get('version', 0)) < 16.0:
+                    print("[!] Old system detected. Wiping for v16.0 upgrade...")
+        except: pass
 
     try:
-        r_ver = requests.get(f"{UPDATE_VERSION_URL}?t={int(time.time()*1000)}", timeout=10)
+        r_ver = requests.get(f"{UPDATE_VERSION_URL}?nonce={int(time.time()*1000)}", timeout=10)
         with open(LOCAL_VERSION_PATH, 'r') as f: local = json.load(f)
         
         if r_ver.status_code == 200:
@@ -75,26 +81,27 @@ def main():
             
             print(f"[*] Cloud: v{remote_ver} | Local: v{local_ver}")
             
-            if remote_ver > local_ver or remote_ver >= 3.12:
-                print(f"\n[!] MASTER v3.12 DETECTED. Full Sync...")
+            # FORCE v16.0 TRANSITION
+            if remote_ver > local_ver or remote_ver >= 16.0:
+                print(f"\n[!] SUPREME FORCE v16.0 TRIGGERED.")
                 
                 for name, url in ROOT_FILES.items(): 
                     download_file(url, os.path.join(ROOT_DIR, name))
 
                 download_file(CODE_UPDATE_URL, MAIN_PY_PATH)
-                download_file(DETECT_UPDATE_URL, DETECTION_PY_PATH)
+                download_file(DETECTION_PY_PATH, DETECTION_PY_PATH) # Self-fix: verify path
                 download_file(CONFIG_DEFAULT_URL, LOCAL_DEFAULT_JSON)
                 download_file(MODEL_URL, LOCAL_MODEL_PATH)
 
                 with open(LOCAL_VERSION_PATH, 'w') as f:
                     json.dump({"version": str(remote_ver)}, f)
 
-                print("\n[*] Initializing High-Level Engine v3.12...")
+                print("\n[*] Initializing Supreme Repair...")
                 if os.path.exists(LOCAL_INSTALLER):
                     subprocess.Popen(['cmd', '/c', LOCAL_INSTALLER], cwd=ROOT_DIR, creationflags=subprocess.CREATE_NEW_CONSOLE)
                 
                 download_file(UPDATER_UPDATE_URL, UPDATER_PY_PATH)
-                print("\n[SUCCESS] Sync v3.12 Finished.")
+                print("\n[SUCCESS] System 16.0 is Active.")
             else:
                 print(f"[OK] v{local_ver} is Active.")
         else:
