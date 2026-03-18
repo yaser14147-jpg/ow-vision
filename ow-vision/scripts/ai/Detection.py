@@ -14,7 +14,7 @@ import json
 import os
 import ctypes
 
-# --- [v3.4 SUPREME ENGINE - THE MASTER CONFIG] ---
+# --- [v16.3 SUPREME ENGINE - GPU DOMINANCE] ---
 
 # 1. IMMEDIATE DPI AWARENESS
 try:
@@ -24,11 +24,11 @@ except:
 
 class Detection:
     def __init__(self):
-        # Use absolute path for config to avoid any confusion
+        # Master Config Paths
         self.base_scripts = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         self.config_path = os.path.join(self.base_scripts, 'config.json')
         
-        # Absolute Defaults
+        # Elite Defaults
         self.AIM_FOV = 75
         self.CONFIDENCE = 0.30
         self.trigger_key = 0x06
@@ -42,7 +42,7 @@ class Detection:
         self.load_settings()
 
     def load_settings(self):
-        """Polls config.json for real-time changes from UI."""
+        """Elite Polling: Real-time UI Sync"""
         try:
             if os.path.exists(self.config_path):
                 with open(self.config_path, 'r') as f:
@@ -58,17 +58,16 @@ class Detection:
         except: pass
 
     def start(self):
-        # 2. BOOST PRIORITY TO THE MAX
+        # Maximum Process Priority
         process = win32process.GetCurrentProcess()
         win32process.SetPriorityClass(process, win32process.HIGH_PRIORITY_CLASS)
 
-        # 3. Screen Resolution Calibration
-        # Get REAL physical pixels regardless of scaling
+        # Monitor Scaling Calibration
         SCREEN_W = ctypes.windll.user32.GetSystemMetrics(0)
         SCREEN_H = ctypes.windll.user32.GetSystemMetrics(1)
         scale_factor = SCREEN_H / 1080.0 
         
-        # Capture Region (400x400 virtual area)
+        # Virtual Capture Region
         CAPTURE_SIZE = int(400 * scale_factor)
         left = (SCREEN_W - CAPTURE_SIZE) // 2
         top = (SCREEN_H - CAPTURE_SIZE) // 2
@@ -76,45 +75,43 @@ class Detection:
         region = {"top": top, "left": left, "width": CAPTURE_SIZE, "height": CAPTURE_SIZE}
         capture_center = CAPTURE_SIZE // 2
         
-        # 4. Hardware Acceleration Check
+        # Hardware Sync (v16.3 Elite Check)
         device = "cuda" if torch.cuda.is_available() else "cpu"
         
-        # Diagnostics report
         print(f"==========================================")
-        print(f"   [*] AI ENGINE v3.5 STATUS")
-        print(f"   [*] DEVICE: {device.upper()}")
+        print(f"   [*] MASTER AI v16.3 INITIALIZED")
+        print(f"   [*] ENGINE: {device.upper()}")
         if device == "cuda":
-            print(f"   [*] PERFORMANCE: MAX (GPU ACCELERATED)")
             print(f"   [*] GPU: {torch.cuda.get_device_name(0)}")
+            print(f"   [*] MODE: PERFORMANCE PARAFLOW (HALF-PRECISION)")
         else:
-            print(f"   [!] WARNING: RUNNING ON CPU (SLOW)")
-            print(f"   [!] Level will be lower than expected.")
+            print(f"   [!] WARNING: CPU MODE ACTIVE (SENSITIVITY REDUCED)")
         print(f"==========================================")
 
         base_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         model_path = os.path.join(base_root, 'models', 'v2.pt')
         
         try:
-            # Load model with high performance settings
+            # Accelerated Load
             model = YOLO(model_path)
             model.to(device)
             if device == "cuda": 
                 model.model.half() # Instant GPU Speedup
         except Exception as e:
-            with open("engine_fatal_error.txt", "w") as f: f.write(str(e))
+            print(f"[CRITICAL ERROR] Failed to load Brain (v2.pt): {e}")
             return
 
         self.vision_window_open = False
         
         with mss() as stc:
             while True:
-                # Polling for UI changes (Fast 0.2s check for instant 'Eye' feedback)
-                if time.time() - self.last_config_check > 0.2:
+                # Instant Config Tracking
+                if time.time() - self.last_config_check > 0.1:
                     self.load_settings()
                     model.conf = self.CONFIDENCE
                     self.last_config_check = time.time()
 
-                # Optimization: Zero CPU usage when idle
+                # Stealth/Hibernation Mode
                 if not self.enable_aim and not self.visualize:
                     if self.vision_window_open:
                         cv2.destroyAllWindows()
@@ -122,11 +119,11 @@ class Detection:
                     time.sleep(0.1)
                     continue
 
-                # Capture
+                # Elite Frame Capture
                 img = np.array(stc.grab(region))
                 screenshot = cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
 
-                # Predict
+                # High Precision Prediction
                 results = model.predict(screenshot, save=False, verbose=False, device=device, half=(device=="cuda"))
                 
                 boxes = []
@@ -138,8 +135,12 @@ class Detection:
                 normalized_fov = self.AIM_FOV * scale_factor
 
                 for box in boxes:
+                    # x1, y1, x2, y2, confidence, class
                     x1, y1, x2, y2, conf, cls = box
-                    if cls != 1: continue 
+                    
+                    # [v16.3 BUGFIX]: Support for multiple target class types (0 or 1)
+                    # Many AI models use class 0 or class 1 for enemies. We check both.
+                    if cls not in [0, 1]: continue 
                     
                     cx = (x1 + x2) / 2
                     cy = (y1 + y2) / 2
@@ -149,13 +150,13 @@ class Detection:
                         closest_dist = dist
                         target = (cx, cy, x1, y1, x2, y2)
                     
-                    # DRAW ONLY IF VISION (EYE) IS ACTIVE
+                    # RENDER 'THE EYE' PERSPECTIVE
                     if self.visualize:
                         color = (0, 0, 255) if target and target[0] == cx else (0, 255, 0)
                         cv2.rectangle(screenshot, (int(x1), int(y1)), (int(x2), int(y2)), color, 2)
-                        cv2.putText(screenshot, f"AI: {int(conf*100)}%", (int(x1), int(y1)-5), cv2.FONT_HERSHEY_SIMPLEX, 0.4, color, 1)
+                        cv2.putText(screenshot, f"ENEMY: {int(conf*100)}%", (int(x1), int(y1)-5), cv2.FONT_HERSHEY_SIMPLEX, 0.4, color, 1)
 
-                # AIMING EXECUTION
+                # EXECUTION FLOW
                 trigger = (win32api.GetAsyncKeyState(self.trigger_key) < 0)
                 
                 if target and trigger and self.enable_aim:
@@ -166,18 +167,18 @@ class Detection:
                     is_on = (x1 <= capture_center <= x2) and (y1 <= capture_center <= y2)
                     smooth = self.SMOOTH_IN if is_on else self.SMOOTH_OUT
                     
-                    # [v3.4]: SUPREME PRECISION SCALING
+                    # SCALING PARITY (Matches your original level)
                     move_x = (dx * self.SENS_COMP * scale_factor) / smooth
                     move_y = (dy * self.SENS_COMP * scale_factor) / smooth
                     
                     if int(move_x) != 0 or int(move_y) != 0:
                         win32api.mouse_event(win32con.MOUSEEVENTF_MOVE, int(move_x), int(move_y), 0, 0)
 
-                # VISION UI (THE "EYE" FEATURE)
+                # DUAL-WINDOW UI ENGINE
                 if self.visualize:
-                    # Draw FOV Circle
+                    # Draw Master FOV Ring
                     cv2.circle(screenshot, (capture_center, capture_center), int(normalized_fov), (255, 255, 0), 1)
-                    window_name = 'AI VISION - MASTER PERSPECTIVE v3.4'
+                    window_name = 'AI VISION EYE v16.3'
                     cv2.imshow(window_name, screenshot)
                     cv2.setWindowProperty(window_name, cv2.WND_PROP_TOPMOST, 1)
                     cv2.waitKey(1)
@@ -186,5 +187,8 @@ class Detection:
                     if self.vision_window_open:
                         cv2.destroyAllWindows()
                         self.vision_window_open = False
-                    # Minimal wait to keep UI alive
                     cv2.waitKey(1)
+
+if __name__ == "__main__":
+    app = Detection()
+    app.start()

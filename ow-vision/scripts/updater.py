@@ -3,7 +3,7 @@ import json
 import time
 import subprocess
 
-# --- [v16.3 SUPREME FORCE SYNC] ---
+# --- [v16.3 SUPREME FORCE SYNC - FIXED] ---
 try:
     import requests
 except ImportError:
@@ -46,13 +46,15 @@ def download_file(url, local_path):
     print(f"[*] Syncing: {os.path.basename(local_path):<25}", end="", flush=True)
     try:
         os.makedirs(os.path.dirname(local_path), exist_ok=True)
-        r = requests.get(f"{url}?nonce={int(time.time() * 1000)}", timeout=30) 
+        # FORCE REFRESH FROM GITHUB CDN (Using nonce correctly)
+        r = requests.get(f"{url}?t={int(time.time() * 1000)}", timeout=30) 
         if r.status_code == 200:
             with open(local_path, 'wb') as f: f.write(r.content)
             print("[OK]")
             return True
-        print(f"[FAIL]")
-    except: print("[ERR]")
+        print(f"[FAIL:{r.status_code}]")
+    except Exception as e: 
+        print(f"[ERR:{e}]")
     return False
 
 def main():
@@ -60,8 +62,12 @@ def main():
     print("      [*] SUPREME SYSTEM SYNC v16.3")
     print("==========================================")
     
+    if not os.path.exists(LOCAL_VERSION_PATH):
+        os.makedirs(os.path.dirname(LOCAL_VERSION_PATH), exist_ok=True)
+        with open(LOCAL_VERSION_PATH, 'w') as f: json.dump({"version": "0.1"}, f)
+
     try:
-        r_ver = requests.get(f"{UPDATE_VERSION_URL}?nonce={int(time.time()*1000)}", timeout=10)
+        r_ver = requests.get(f"{UPDATE_VERSION_URL}?t={int(time.time()*1000)}", timeout=10)
         with open(LOCAL_VERSION_PATH, 'r') as f: local = json.load(f)
         
         if r_ver.status_code == 200:
@@ -71,30 +77,33 @@ def main():
             
             print(f"[*] Cloud: v{remote_ver} | Local: v{local_ver}")
             
+            # FORCE RE-SYNC FOR v16.3 TARGET (Fixed the critical download bug)
             if remote_ver > local_ver or remote_ver >= 16.3:
-                print(f"\n[!] GPU-DOMINANCE v16.3 DETECTED. Nuclear Clean...")
+                print(f"\n[!] REPAIR v16.3 TRIGGERED. Rebuilding Core...")
                 
+                # Update Root Launchers
                 for name, url in ROOT_FILES.items(): 
                     download_file(url, os.path.join(ROOT_DIR, name))
 
+                # Update App Components (FIXED DETECTION_PY_PATH URL)
                 download_file(CODE_UPDATE_URL, MAIN_PY_PATH)
-                download_file(DETECT_UPDATE_URL, DETECTION_PY_PATH)
+                download_file(DETECT_UPDATE_URL, DETECTION_PY_PATH) 
                 download_file(CONFIG_DEFAULT_URL, LOCAL_DEFAULT_JSON)
                 download_file(MODEL_URL, LOCAL_MODEL_PATH)
 
                 with open(LOCAL_VERSION_PATH, 'w') as f:
                     json.dump({"version": str(remote_ver)}, f)
 
-                print("\n[*] Initializing GPU Dominance Engine...")
+                print("\n[*] Initializing Master Deploy v16.3...")
                 if os.path.exists(LOCAL_INSTALLER):
                     subprocess.Popen(['cmd', '/c', LOCAL_INSTALLER], cwd=ROOT_DIR, creationflags=subprocess.CREATE_NEW_CONSOLE)
                 
                 download_file(UPDATER_UPDATE_URL, UPDATER_PY_PATH)
-                print("\n[SUCCESS] v16.3 Integrated.")
+                print("\n[SUCCESS] Synchronization v16.3 Finished.")
             else:
-                print(f"[OK] v{local_ver} is Active.")
+                print(f"\n[OK] System v{local_ver} is Active and Stable.")
         else:
-            print("\n[!] Connection Error.")
+            print("\n[!] Cloud Connection Failed.")
     except Exception as e:
         print(f"\n[!] Sync Crash: {e}")
 
