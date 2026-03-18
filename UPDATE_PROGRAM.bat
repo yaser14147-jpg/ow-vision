@@ -1,8 +1,8 @@
 @echo off
 setlocal enabledelayedexpansion
-title AI VISION ULTIMATE SYNC v9.5
+title AI VISION MASTER UPDATE v12.0 (STamina Edition)
 
-:: [!] CRITICAL FIX: ENABLEDELAYEDEXPANSION RESTORED
+:: [!] CRITICAL UPDATE: STAYS OPEN UNTIL DISMISSED
 
 echo ==========================================
 echo    [*] Searching for System Updates...
@@ -34,6 +34,6 @@ python "!LOCAL_UPDATER!"
 
 echo.
 echo ==========================================
-echo [OK] Synchronization Complete.
+echo [OK] Synchronization Complete (v12.0)
 echo ==========================================
-timeout /t 2
+pause

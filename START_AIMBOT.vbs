@@ -7,7 +7,7 @@ MainPyPath = fso.BuildPath(StrPath, "ow-vision\scripts\main.py")
 PathFile = fso.BuildPath(StrPath, "python_path.txt")
 InstallerPath = fso.BuildPath(StrPath, "INSTALL_LIBRARIES.bat")
 
-' --- [2] FIND PYTHON (v11.5 SMART REPAIR) ---
+' --- [2] FIND PYTHON (v12.0 MASTER ULTIMATE) ---
 Sub FindAndLaunch()
     On Error Resume Next
     FoundPy = ""
@@ -20,14 +20,14 @@ Sub FindAndLaunch()
         If fso.FileExists(SavedPath) Then FoundPy = SavedPath
     End If
 
-    ' Priority 2: Try standard command
+    ' Priority 2: Check in PATH directly
     If FoundPy = "" Then
         Err.Clear
         WshShell.Run "pythonw.exe --version", 0, True
         If Err.Number = 0 Then FoundPy = "pythonw.exe"
     End If
 
-    ' Priority 3: Try fallback
+    ' Priority 3: Fallback check
     If FoundPy = "" Then
         Err.Clear
         WshShell.Run "python.exe --version", 0, True
@@ -36,19 +36,22 @@ Sub FindAndLaunch()
 
     ' --- [3] LAUNCH OR REPAIR ---
     If FoundPy <> "" Then
+        ' Force the working directory (CWD) to the script path
+        ' This ensures FOV and external configs/models are loaded properly
+        WshShell.CurrentDirectory = StrPath
         WshShell.Run """" & FoundPy & """ """ & MainPyPath & """", 0, False
     Else
-        Ans = MsgBox("Fatal: Python not detected!" & vbCrLf & _
-                     "Would you like to run the Auto-Repair Tool (Installer) now?", 36, "Environment Error")
+        Ans = MsgBox("Fatal: Python not found!" & vbCrLf & _
+                     "Run Auto-Repair Tool (Installer) v12.0 now?", 36, "Environment Error")
         If Ans = 6 Then ' If Yes
             WshShell.Run "cmd /c """ & InstallerPath & """", 1, False
         End If
     End If
 End Sub
 
-' --- START ---
+' Start everything
 If Not fso.FileExists(MainPyPath) Then
-    MsgBox "Error: main.py not found!", 16, "File Error"
+    MsgBox "Error: main.py missing at: " & MainPyPath, 16, "File Error"
     WScript.Quit
 End If
 
