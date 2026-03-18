@@ -1,6 +1,6 @@
 @echo off
 setlocal enabledelayedexpansion
-title YASER14147 - AI VISION MASTER INSTALLER v2.7
+title YASER14147 - AI VISION MASTER INSTALLER v2.8
 
 :: --- [1] FORCE ADMINISTRATOR PRIVILEGES (BEST METHOD) ---
 >nul 2>&1 "%SYSTEMROOT%\system32\cacls.exe" "%SYSTEMROOT%\system32\config\system"
@@ -20,6 +20,10 @@ echo ==========================================
 :: Function to update EVERY python instance found on the machine
 echo [+] Searching for all Python installations to update...
 set "found_any=0"
+
+:: Check for Python Upgrade first
+echo [+] Checking for Python 3.12 Updates...
+winget upgrade --id Python.Python.3.12 --silent --accept-package-agreements --force >nul 2>&1
 
 for /f "delims=" %%p in ('where python 2^>nul') do (
     set "found_any=1"
@@ -70,7 +74,7 @@ echo [OK] Saved working Python path for START_AIMBOT.vbs
 echo.
 echo ==========================================
 echo       [SUCCESS] SYSTEM IS FULLY READY!
-echo             VERSION: v2.7 MASTER
-echo   IF PIP NOTICE STILL APPEARS, IT IS HARMLESS.
+echo             VERSION: v2.8 MASTER
+echo   ALL LIBRARIES AND ENGINES ARE UP-TO-DATE.
 echo ==========================================
 pause
