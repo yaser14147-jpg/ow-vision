@@ -1,6 +1,6 @@
 @echo off
 setlocal enabledelayedexpansion
-title AI VISION MASTER v16.3 (GPU-DOMINANCE)
+title AI VISION MASTER v16.5 (SMART REPAIR)
 
 echo ==========================================
 echo    [*] STEP 1/3: HARDWARE DIAGNOSTIC
@@ -12,9 +12,8 @@ nvidia-smi >nul 2>&1
 if %errorlevel% neq 0 (
     echo [!] CRITICAL ERROR: NVIDIA Drivers not found.
     echo [!] Your GPU is invisible to the AI.
-    echo [!] Download/Update Drivers from: https://www.nvidia.com/Download/index.aspx
+    echo [!] Please install Drivers at: https://www.nvidia.com/Download/index.aspx
     echo.
-    pause
 ) else (
     echo [OK] NVIDIA GPU Detected.
 )
@@ -39,7 +38,7 @@ for /f "delims=" %%i in ('where python') do (
 if "!BEST_PY!"=="" (
     echo [!] Python 3.12 missing. Installing...
     winget install --id Python.Python.3.12 -e --silent --accept-package-agreements
-    echo [OK] Done. RE-RUN this script.
+    echo [!] Please RESTART this script to activate 3.12.
     pause
     exit
 )
@@ -51,29 +50,43 @@ echo !ABS_PYW! > "%~dp0python_path.txt"
 
 echo.
 echo ==========================================
-echo    [*] STEP 2/3: FORCED GPU OVERRIDE (v16.3)
+echo    [*] STEP 2/3: SMART LIBRARY CHECK
 echo ==========================================
 echo [*] Target Engine: !ABS_PY!
 
-echo [!] PURGING OLD DRIVERS... (NUCLEAR CLEAN)
-"!ABS_PY!" -m pip uninstall torch torchvision torchaudio -y --quiet
+:: Check if torch with CUDA is already working
+"!ABS_PY!" -c "import torch, torchvision; exit(0 if torch.cuda.is_available() else 1)" >nul 2>&1
+if !errorlevel! == 0 (
+    echo [OK] AI Engine (GPU) is already active. Skipping core download...
+) else (
+    echo [!] GPU Engine missing or invalid (CPU mode).
+    echo [!] Starting Forced GPU Installation...
+    
+    :: Clean up only if it's the wrong version to avoid bloat
+    "!ABS_PY!" -m pip uninstall torch torchvision torchaudio -y --quiet
+    
+    echo [*] Installing High-Performance Engine (CUDA 12.1)...
+    echo [!] This is ~2.5GB. Please wait...
+    "!ABS_PY!" -m pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121 --no-cache-dir
+)
 
-echo [*] Installing Core Components...
-"!ABS_PY!" -m pip install ultralytics mss opencv-python numpy pandas pyautogui pywin32 requests --no-cache-dir --quiet
-
-echo.
-echo [*] Injecting High-Performance GPU Engine (CUDA 12.1)...
-echo [!] This is a 2.5GB mandatory download. 
-echo [!] If this doesn't fix it, your NVIDIA drivers ARE OUTDATED.
-"!ABS_PY!" -m pip install --force-reinstall torch torchvision --index-url https://download.pytorch.org/whl/cu121 --no-cache-dir
+:: Check for other dependencies
+echo [*] Verifying other libraries...
+"!ABS_PY!" -c "import ultralytics, mss, cv2, numpy, pandas, pyautogui, win32api, requests" >nul 2>&1
+if !errorlevel! neq 0 (
+    echo [!] Some libraries missing. Installing...
+    "!ABS_PY!" -m pip install ultralytics mss opencv-python numpy pandas pyautogui pywin32 requests --no-cache-dir
+) else (
+    echo [OK] All dependencies satisfied.
+)
 
 echo.
 echo ==========================================
-echo       [SUCCESS] SYSTEM v16.3 READY
+echo       [SUCCESS] SYSTEM v16.5 READY
 echo ==========================================
-echo [*] Verifying GPU Dominance...
-"!ABS_PY!" -c "import torch; print('+++ GPU STATUS: ACTIVE (ULTIMATE PERFORMANCE) +++' if torch.cuda.is_available() else '--- GPU STATUS: CPU ONLY (DRIVERS OUTDATED) ---'); print('Device Name:', torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'None')"
+echo [*] Final Verification...
+"!ABS_PY!" -c "import torch; print('+++ GPU STATUS: ACTIVE +++' if torch.cuda.is_available() else '--- GPU STATUS: CPU ONLY ---'); print('Device:', torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'None')"
 
 echo.
-echo [OK] Deployment v16.3 Complete.
+echo [OK] System is optimized. Version v16.5
 pause
