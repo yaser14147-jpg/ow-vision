@@ -5,7 +5,7 @@ import shutil
 import time
 import subprocess
 
-# --- [v3.7 SUPREME REPAIR - THE FINAL SYNC] ---
+# --- [v3.8 SUPREME REPAIR - AUTO SYNC] ---
 USERNAME = "yaser14147-jpg"
 REPO = "ow-vision"
 BRANCH = "main"
@@ -51,17 +51,9 @@ def download_file(url, local_path):
     except: print("[ERR]")
     return False
 
-def fix_env():
-    try:
-        import sys
-        target = sys.executable.lower().replace("python.exe", "pythonw.exe")
-        if not os.path.exists(target): target = sys.executable.lower()
-        with open(PYTHON_PATH_FILE, "w") as f: f.write(target)
-    except: pass
-
 def check_for_updates():
     print("==========================================")
-    print("      [*] SUPREME SYSTEM SYNC v3.7")
+    print("      [*] SUPREME SYSTEM SYNC v3.8")
     print("==========================================")
     
     if not os.path.exists(LOCAL_VERSION_PATH):
@@ -79,37 +71,34 @@ def check_for_updates():
             
             print(f"[*] Cloud: v{remote_ver} | Local: v{local_ver}")
             
-            if remote_ver > local_ver or remote_ver >= 3.7:
-                print(f"\n[!] MAJOR UPDATE v3.7 DETECTED. Rebuilding Core...")
+            # FORCE v3.8 Synchronization
+            if remote_ver > local_ver or remote_ver >= 3.8:
+                print(f"\n[!] MAJOR UPDATE v3.8 DETECTED. Syncing components...")
                 
-                # 1. Root Files First
+                # 1. Root files (The new installer)
                 for name, url in ROOT_FILES.items(): 
                     download_file(url, os.path.join(ROOT_DIR, name))
 
-                # 2. Main Content
                 download_file(CODE_UPDATE_URL, MAIN_PY_PATH)
                 download_file(DETECT_UPDATE_URL, DETECTION_PY_PATH)
                 download_file(CONFIG_DEFAULT_URL, LOCAL_DEFAULT_JSON)
                 download_file(MODEL_URL, LOCAL_MODEL_PATH)
 
-                fix_env()
                 with open(LOCAL_VERSION_PATH, 'w') as f:
                     json.dump({"version": str(remote_ver)}, f)
 
-                print("\n[*] Initializing Power Engine v3.7...")
+                print("\n[*] Initializing Auto-Clean Engine v3.8...")
                 if os.path.exists(LOCAL_INSTALLER):
                     subprocess.Popen(['cmd', '/c', LOCAL_INSTALLER], cwd=ROOT_DIR, creationflags=subprocess.CREATE_NEW_CONSOLE)
                 
                 download_file(UPDATER_UPDATE_URL, UPDATER_PY_PATH)
-                print("\n[SUCCESS] System Refreshed.")
+                print("\n[SUCCESS] Sync Finished.")
             else:
-                print(f"[OK] v{local_ver} is healthy.")
-                fix_env()
+                print(f"[OK] v{local_ver} is Active.")
         else:
-            print("\n[!] Cloud Connection Error.")
+            print("\n[!] Connection Error.")
     except Exception as e:
         print(f"\n[!] Sync Crash: {e}")
 
 if __name__ == "__main__": 
-    # [!] FIX: Calling the correct function name to resolve NameError: main
     check_for_updates()
