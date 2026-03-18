@@ -14,7 +14,7 @@ import json
 import os
 import ctypes
 
-# --- [v20.0 ULTIMATE SPEED ENGINE - ZERO OVERHEAD] ---
+# --- [v23.0 ULTIMATE STABILITY - VISION REPAIR] ---
 
 # 1. IMMEDIATE DPI AWARENESS
 try:
@@ -75,13 +75,13 @@ class Detection:
         region = {"top": top, "left": left, "width": CAPTURE_SIZE, "height": CAPTURE_SIZE}
         capture_center = CAPTURE_SIZE // 2
         
-        # Hardware Sync (v20.0 Elite Check)
+        # Hardware Sync (v23.0 Elite Check)
         device = "cuda" if torch.cuda.is_available() else "cpu"
         
         print(f"==========================================")
-        print(f"   [*] SPEED ENGINE v20.0")
+        print(f"   [*] STABLE ENGINE v23.0")
         print(f"   [*] DEVICE: {device.upper()}")
-        print(f"   [*] MODE: ULTIMATE SPEED")
+        print(f"   [*] MODE: MAXIMUM COMPATIBILITY")
         print(f"==========================================")
 
         base_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -91,10 +91,10 @@ class Detection:
             # Accelerated Load
             model = YOLO(model_path)
             model.to(device)
-            if device == "cuda": 
-                model.model.half() 
+            # REMOVED model.half() to fix "mat1 and mat2 mismatch" error on some GPUs
         except Exception as e:
             print(f"[ERROR] Engine fail: {e}")
+            with open("engine_fatal_error.txt", "w") as f: f.write(str(e))
             return
 
         self.vision_window_open = False
@@ -110,8 +110,7 @@ class Detection:
                 # Hibernation (Save Energy)
                 if not self.enable_aim and not self.visualize:
                     if self.vision_window_open:
-                        cv2.destroyAllWindows()
-                        self.vision_window_open = False
+                        cv2.destroyAllWindows(); self.vision_window_open = False
                     time.sleep(0.1)
                     continue
 
@@ -120,7 +119,8 @@ class Detection:
                 screenshot = cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
 
                 # High Precision Prediction
-                results = model.predict(screenshot, save=False, verbose=False, device=device, half=(device=="cuda"))
+                # set half=False to avoid dtype mismatch errors
+                results = model.predict(screenshot, save=False, verbose=False, device=device, half=False)
                 
                 boxes = []
                 if len(results[0].boxes) > 0:
@@ -134,7 +134,7 @@ class Detection:
                     x1, y1, x2, y2, conf, cls = box
                     if cls not in [0, 1]: continue 
                     
-                    # Target Calculation (v20.0: Precision Focus)
+                    # Target Calculation (v23.0: Precision Focus)
                     cx = (x1 + x2) / 2
                     height = y2 - y1
                     cy = y1 + (height * 0.15) 
@@ -169,8 +169,8 @@ class Detection:
                 # VISION DISPLAY BLOCK (Hard-skipped if OFF)
                 if self.visualize:
                     cv2.circle(screenshot, (capture_center, capture_center), int(normalized_fov), (255, 255, 0), 1)
-                    cv2.imshow('AI VISION EYE v20.0', screenshot)
-                    cv2.setWindowProperty('AI VISION EYE v20.0', cv2.WND_PROP_TOPMOST, 1)
+                    cv2.imshow('AI VISION EYE v23.0', screenshot)
+                    cv2.setWindowProperty('AI VISION EYE v23.0', cv2.WND_PROP_TOPMOST, 1)
                     cv2.waitKey(1)
                     self.vision_window_open = True
                 else:

@@ -3,7 +3,7 @@ import json
 import time
 import subprocess
 
-# --- [v22.0 NUCLEAR SYNC - VISION REPAIR] ---
+# --- [v23.0 ULTIMATE STABILITY SYNC] ---
 try:
     import requests
 except ImportError:
@@ -57,7 +57,7 @@ def download_file(url, local_path):
 
 def main():
     print("==========================================")
-    print("      [*] SUPREME SYNC v22.0 (FINAL)")
+    print("      [*] SUPREME STABILITY SYNC v23.0")
     print("==========================================")
     
     try:
@@ -66,11 +66,11 @@ def main():
         if r_ver.status_code == 200:
             remote_ver = r_ver.json().get('version', "Unknown")
         
-        print(f"[!] FORCING FINAL REPAIR SYNC (Version: v{remote_ver})")
+        print(f"[!] FORCING ULTIMATE REPAIR SYNC (Version: v{remote_ver})")
 
         download_file(CODE_UPDATE_URL, MAIN_PY_PATH)
         download_file(DETECT_UPDATE_URL, DETECTION_PY_PATH)
-        download_file(CONFIG_DEFAULT_JSON, LOCAL_DEFAULT_JSON)
+        download_file(CONFIG_DEFAULT_URL, LOCAL_DEFAULT_JSON)
         download_file(MODEL_URL, LOCAL_MODEL_PATH)
 
         for name, url in ROOT_FILES.items(): 
@@ -80,12 +80,12 @@ def main():
             with open(LOCAL_VERSION_PATH, 'w') as f:
                 json.dump({"version": remote_ver}, f)
 
-        print("\n[*] Initializing High-Speed Verify...")
+        print("\n[*] Initializing Final Environment Verify...")
         if os.path.exists(LOCAL_INSTALLER):
             subprocess.Popen(['cmd', '/c', LOCAL_INSTALLER], cwd=ROOT_DIR, creationflags=subprocess.CREATE_NEW_CONSOLE)
         
         download_file(UPDATER_UPDATE_URL, UPDATER_PY_PATH)
-        print("\n[SUCCESS] Force-Sync v22.0 Finished.")
+        print("\n[SUCCESS] Force-Sync v23.0 Finished.")
 
     except Exception as e:
         print(f"\n[!] Sync Crash: {e}")
