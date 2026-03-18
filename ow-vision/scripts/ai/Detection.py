@@ -79,14 +79,17 @@ class Detection:
         # 4. Hardware Acceleration Check
         device = "cuda" if torch.cuda.is_available() else "cpu"
         
-        # Diagnostics log to help the USER troubleshoot friends' PCs
-        with open("gpu_report.txt", "w") as f:
-            f.write(f"V3.4 MASTER ENGINE REPORT\n")
-            f.write(f"PHYSICAL RESOLUTION: {SCREEN_W}x{SCREEN_H}\n")
-            f.write(f"DEVICE DETECTED: {device.upper()}\n")
-            if device == "cuda":
-                f.write(f"GPU NAME: {torch.cuda.get_device_name(0)}\n")
-            f.write(f"SYNC STATUS: ACTIVE\n")
+        # Diagnostics report
+        print(f"==========================================")
+        print(f"   [*] AI ENGINE v3.5 STATUS")
+        print(f"   [*] DEVICE: {device.upper()}")
+        if device == "cuda":
+            print(f"   [*] PERFORMANCE: MAX (GPU ACCELERATED)")
+            print(f"   [*] GPU: {torch.cuda.get_device_name(0)}")
+        else:
+            print(f"   [!] WARNING: RUNNING ON CPU (SLOW)")
+            print(f"   [!] Level will be lower than expected.")
+        print(f"==========================================")
 
         base_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         model_path = os.path.join(base_root, 'models', 'v2.pt')
