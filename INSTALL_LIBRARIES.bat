@@ -1,9 +1,9 @@
 @echo off
 setlocal enabledelayedexpansion
-title AI VISION MASTER v16.0 (SUPREME FORCE)
+title AI VISION MASTER v16.1 (PROGRESS ENGINE)
 
 echo ==========================================
-echo    [*] STEP 1/3: SYSTEM VALIDATION (v16.0)
+echo    [*] STEP 1/3: SYSTEM VALIDATION (v16.1)
 echo ==========================================
 
 :: [1] Search for Python 3.12
@@ -39,21 +39,25 @@ echo !ABS_PYW! > "%~dp0python_path.txt"
 
 echo.
 echo ==========================================
-echo    [*] STEP 2/3: FORCED SYNC (v16.0)
+echo    [*] STEP 2/3: PROGRESS SYNC (v16.1)
 echo ==========================================
 echo [*] Target Engine: !ABS_PY!
-"!ABS_PY!" -m pip install --upgrade pip --quiet
-"!ABS_PY!" -m pip install ultralytics mss opencv-python numpy pandas pyautogui pywin32 requests --no-cache-dir --quiet
+echo [!] Downloading AI Libraries... Please wait for the Progress Bars.
 
-echo [*] Initializing GPU AI Brain (CUDA)...
+"!ABS_PY!" -m pip install --upgrade pip
+"!ABS_PY!" -m pip install ultralytics mss opencv-python numpy pandas pyautogui pywin32 requests --no-cache-dir
+
+echo.
+echo [*] Initializing GPU AI Brain (CUDA 12.1)...
+echo [!] CRITICAL: This file is ~2.5GB. Download speed depends on your internet.
 "!ABS_PY!" -m pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121 --no-cache-dir
 
 echo.
 echo ==========================================
-echo       [SUCCESS] SYSTEM v16.0 READY
+echo       [SUCCESS] SYSTEM v16.1 READY
 echo ==========================================
 "!ABS_PY!" -c "import torch; print('+++ GPU STATUS: ACTIVE +++' if torch.cuda.is_available() else '--- GPU STATUS: CPU ONLY ---'); print('Device:', torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'None')"
 
 echo.
-echo [OK] All components unified at v16.0.
+echo [OK] Deployment Complete. v16.1
 pause
