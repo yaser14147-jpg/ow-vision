@@ -5,7 +5,7 @@ import shutil
 import time
 import subprocess
 
-# --- System Synchronization Settings (v6.5 MEGA SYNC) ---
+# --- System Synchronization Settings (v7.1 MEGA SYNC) ---
 USERNAME = "yaser14147-jpg"
 REPO = "ow-vision"
 BRANCH = "main"
