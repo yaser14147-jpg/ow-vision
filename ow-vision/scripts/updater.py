@@ -53,7 +53,7 @@ def download_file(url, local_path):
 
 def check_for_updates():
     print("==========================================")
-    print("      [*] Checking for Updates...")
+    print("      [*] Searching for Updates...")
     print("==========================================")
     
     if not os.path.exists(LOCAL_VERSION_PATH):
