@@ -1,6 +1,6 @@
 @echo off
 setlocal enabledelayedexpansion
-title AI VISION ULTIMATE INSTALLER v6.0
+title AI VISION MASTER INSTALLER v6.1
 
 :: --- [1] FORCE ADMINISTRATOR PRIVILEGES (BEST METHOD) ---
 >nul 2>&1 "%SYSTEMROOT%\system32\cacls.exe" "%SYSTEMROOT%\system32\config\system"
@@ -17,44 +17,57 @@ echo ==========================================
 echo    [+] STEP 1/4: UPDATING ENVIRONMENT...
 echo ==========================================
 
-:: Function to update EVERY python instance found on the machine
-echo [+] Searching for all Python installations to update...
 set "found_any=0"
 
-:: Check for Python Upgrade first
-echo [+] Checking for Python 3.12 Updates...
-winget upgrade --id Python.Python.3.12 --silent --accept-package-agreements --force >nul 2>&1
-
-for /f "delims=" %%p in ('where python 2^>nul') do (
+:: [1] Quick Check: Is Python already active and correct?
+python --version >nul 2>&1
+if %errorlevel% == 0 (
+    echo [+] Fast Discovery: System Python found active.
     set "found_any=1"
-    echo.
-    echo [>] TARGETING: "%%p"
-    "%%p" -m pip install --upgrade pip --no-warn-script-location --quiet
-    "%%p" -m pip install --upgrade ultralytics mss opencv-python numpy pandas pyautogui pywin32 requests --no-cache-dir --no-warn-script-location --quiet
-    "%%p" -m pip install --upgrade torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121 --no-warn-script-location --quiet
-    echo [OK] Updated: "%%p"
+    set "p_path=python"
+    
+    echo [>] TARGETING ACTIVE: "!p_path!"
+    "!p_path!" -m pip install --upgrade pip --quiet
+    "!p_path!" -m pip install --upgrade ultralytics mss opencv-python numpy pandas pyautogui pywin32 requests --no-cache-dir --quiet
+    "!p_path!" -m pip install --upgrade torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121 --quiet
+    echo [OK] Sync Complete.
+    goto :sync_launchers
 )
 
-:: If none found via 'where', try common manual paths
-if "!found_any!"=="0" (
-    echo [!] No Python found in PATH. Checking common manual locations...
-    for %%d in ("C:\Program Files\Python312" "C:\Program Files\Python311" "%LocalAppData%\Programs\Python\Python312" "%LocalAppData%\Programs\Python\Python311") do (
-        if exist "%%~d\python.exe" (
-            set "found_any=1"
-            echo [>] TARGETING MANUAL: "%%~d\python.exe"
-            "%%~d\python.exe" -m pip install --upgrade pip --quiet
-            "%%~d\python.exe" -m pip install --upgrade ultralytics mss opencv-python numpy pandas pyautogui pywin32 requests --quiet
-        )
+:: [2] Common Paths Check (If active python failed)
+echo [!] Active Python not found. Searching common paths...
+for %%d in ("C:\Program Files\Python312" "C:\Program Files\Python311" "%LocalAppData%\Programs\Python\Python312" "%LocalAppData%\Programs\Python\Python311") do (
+    if exist "%%~d\python.exe" (
+        set "found_any=1"
+        echo [+] Found at: "%%~d\python.exe"
+        "%%~d\python.exe" -m pip install --upgrade pip --quiet
+        "%%~d\python.exe" -m pip install --upgrade ultralytics mss opencv-python numpy pandas pyautogui pywin32 requests --quiet
+        goto :sync_launchers
     )
 )
 
+:: [3] Hard Search (Last resort before installing)
 if "!found_any!"=="0" (
-    echo [!] Still no Python. Attempting LAST RESORT: Winget Install...
+    echo [+] Performing deep search (might take a moment)...
+    for /f "delims=" %%p in ('where python 2^>nul') do (
+        set "found_any=1"
+        echo [+] Found target: "%%p"
+        "%%p" -m pip install --upgrade pip --quiet
+        "%%p" -m pip install --upgrade ultralytics mss opencv-python numpy pandas pyautogui pywin32 requests --quiet
+        goto :sync_launchers
+    )
+)
+
+:: [4] Automated Install
+if "!found_any!"=="0" (
+    echo [!] PYTHON MISSING. Starting Auto-Installation...
     winget install -e --id Python.Python.3.12 --silent --accept-package-agreements
-    echo [!] Please restart this script after Winget finishes.
+    echo [!] Please restart this script after installation finishes.
     pause
     exit /b
 )
+
+:sync_launchers
 
 echo.
 echo ==========================================
@@ -75,7 +88,7 @@ curl -L -s "!BASE_URL!/START_AIMBOT.vbs" -o "%~dp0START_AIMBOT.vbs"
 echo.
 echo ==========================================
 echo       [SUCCESS] SYSTEM IS FULLY READY!
-echo             VERSION: v6.0 MASTER
-echo   ALL ENGINES, LIBRARIES, AND LAUNCHERS SYNCED.
+echo             VERSION: v6.1 MASTER
+echo   FAST SYNC: LIBRARIES AND LAUNCHERS READY.
 echo ==========================================
 pause
