@@ -1,6 +1,6 @@
 @echo off
 setlocal enabledelayedexpansion
-title AI VISION MASTER UPDATE v10.0 (ULTIMATE REPAIR)
+title AI VISION MASTER UPDATE v2.904 (FORCE SYNC)
 
 echo ==========================================
 echo    [*] Searching for System Updates...
@@ -28,6 +28,6 @@ python "!LOCAL_UPDATER!"
 
 echo.
 echo ==========================================
-echo [OK] Synchronization Complete (v10.0)
+echo [OK] Synchronization Complete (v2.904)
 echo ==========================================
 pause

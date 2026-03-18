@@ -5,7 +5,7 @@ import shutil
 import time
 import subprocess
 
-# --- [v10.0 NUCLEAR SYNC - FORCED SYSTEM OVERHAUL] ---
+# --- [v2.904 SUPREME STABILITY SYNC] ---
 USERNAME = "yaser14147-jpg"
 REPO = "ow-vision"
 BRANCH = "main"
@@ -42,64 +42,60 @@ def download_file(url, local_path):
     print(f"[*] Syncing: {os.path.basename(local_path):<25}", end="", flush=True)
     try:
         os.makedirs(os.path.dirname(local_path), exist_ok=True)
-        # NUCLEAR CACHE BUSTING
-        r = requests.get(f"{url}?nonce={int(time.time() * 1000)}", timeout=30) 
+        # FORCE REFRESH
+        r = requests.get(f"{url}?t={int(time.time() * 1000)}", timeout=30) 
         if r.status_code == 200:
             with open(local_path, 'wb') as f: f.write(r.content)
             print("[OK]")
             return True
-        print(f"[FAIL:{r.status_code}]")
+        print(f"[FAIL]")
     except: print("[ERR]")
     return False
 
 def check_for_updates():
     print("==========================================")
-    print("      [*] NUCLEAR SYSTEM SYNC v10.0")
+    print("      [*] SUPREME SYSTEM SYNC v2.904")
     print("==========================================")
     
     if not os.path.exists(LOCAL_VERSION_PATH):
         os.makedirs(os.path.dirname(LOCAL_VERSION_PATH), exist_ok=True)
-        with open(LOCAL_VERSION_PATH, 'w') as f: json.dump({"version": "0.1"}, f)
+        with open(LOCAL_VERSION_PATH, 'w') as f: json.dump({"version": "0.11"}, f)
 
     try:
         # Cache-busting version check
-        r_ver = requests.get(f"{UPDATE_VERSION_URL}?nonce={int(time.time()*1000)}", timeout=10)
+        r_ver = requests.get(f"{UPDATE_VERSION_URL}?t={int(time.time()*1000)}", timeout=10)
         with open(LOCAL_VERSION_PATH, 'r') as f: local = json.load(f)
         
         if r_ver.status_code == 200:
             remote = r_ver.json()
-            remote_ver = float(remote.get('version', 0))
-            local_ver = float(local.get('version', 0))
+            remote_ver = remote.get('version', "0")
+            local_ver = local.get('version', "0")
             
             print(f"[*] Cloud: v{remote_ver} | Local: v{local_ver}")
             
-            # FORCE TRANSITION TO v10.0 (The Ultimate Sync)
-            if remote_ver > local_ver or remote_ver >= 10.0:
-                print(f"\n[!] NUCLEAR REPAIR v{remote_ver} INITIALIZED.")
-                print("[*] Rebuilding all components for GPU parity...")
+            # FORCE v2.904 SYNC
+            if remote_ver != local_ver or remote_ver == "2.904":
+                print(f"\n[!] MASTER v2.904 DETECTED. Full Reconstruction...")
                 
-                # 1. Sync Root Launchers (First priority)
                 for name, url in ROOT_FILES.items(): 
                     download_file(url, os.path.join(ROOT_DIR, name))
 
-                # 2. Sync Core App and Detection Engine
                 download_file(CODE_UPDATE_URL, MAIN_PY_PATH)
                 download_file(DETECT_UPDATE_URL, DETECTION_PY_PATH)
                 download_file(CONFIG_DEFAULT_URL, LOCAL_DEFAULT_JSON)
                 download_file(MODEL_URL, LOCAL_MODEL_PATH)
 
-                # 3. Finalize
                 with open(LOCAL_VERSION_PATH, 'w') as f:
                     json.dump({"version": str(remote_ver)}, f)
 
-                print("\n[*] Launching High-Performance Engine v10.0...")
+                print("\n[*] Initializing Master Repair v2.904...")
                 if os.path.exists(LOCAL_INSTALLER):
                     subprocess.Popen(['cmd', '/c', LOCAL_INSTALLER], cwd=ROOT_DIR, creationflags=subprocess.CREATE_NEW_CONSOLE)
                 
                 download_file(UPDATER_UPDATE_URL, UPDATER_PY_PATH)
-                print("\n[SUCCESS] v10.0 SUPREME SYSTEM READY.")
+                print("\n[SUCCESS] v2.904 Integrated.")
             else:
-                print(f"\n[OK] System v{local_ver} is Active.")
+                print(f"[OK] System is healthy.")
         else:
             print("\n[!] Connection Error.")
     except Exception as e:

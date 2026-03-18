@@ -1,85 +1,97 @@
 @echo off
 setlocal enabledelayedexpansion
-title AI VISION MASTER v4.0 (STABILITY ENGINE)
+title AI VISION MASTER v2.904 (ULTIMATE STABILITY)
 
-echo.
+:: CRITICAL: Add absolute pause if anything fails
 echo ==========================================
-echo    [*] STEP 1/3: COMPATIBILITY SCAN
+echo    [*] STEP 1/3: ENVIRONMENT VALIDATION
 echo ==========================================
 
-:: [1] Check for Winget (Critical for auto-fix)
+:: [1] Check for Winget
+echo [*] Checking System Tools...
 winget --version >nul 2>&1
 if %errorlevel% neq 0 (
-    echo [!] ERROR: Winget is missing or disabled.
+    echo [!] FATAL ERROR: 'winget' not found.
+    echo [!] This is required to auto-install Python.
     echo [!] Please install 'App Installer' from Microsoft Store.
+    echo.
     pause
     exit
 )
+echo [OK] System Tools Ready.
 
-:: [2] Check Python Presence
-where python >nul 2>&1
+:: [2] Check Python and Clean 3.14
+echo [*] Checking Python Environment...
+python --version >nul 2>&1
 if %errorlevel% neq 0 (
-    echo [!] Python not found. Installing Stable 3.12...
+    echo [!] Python missing. Attempting auto-install of 3.12...
     winget install --id Python.Python.3.12 -e --silent --accept-package-agreements
-    echo [OK] Installed. please RE-RUN this script.
+    echo [OK] Python 3.12 installed. Please CLOSE and RE-RUN this file.
     pause
     exit
 )
 
-:: [3] Safely Get Python Version
 for /f "tokens=2" %%v in ('python --version 2^>^&1') do set "PY_VER=%%v"
-echo [*] Detected: Python !PY_VER!
+echo [*] Current Python: !PY_VER!
 
-:: [4] FORCE REMOVE 3.14 (Incompatible)
 echo !PY_VER! | findstr "3.14" >nul
 if %errorlevel% == 0 (
-    echo [!] CRITICAL: Python 3.14 is NOT compatible with GPU AI.
-    echo [*] UNINSTALLING 3.14... PLEASE WAIT.
+    echo [!] CRITICAL: Python 3.14 detected. 
+    echo [!] Removing incompatible version...
     winget uninstall --id Python.Python.3.14 --silent --accept-source-agreements
-    echo [OK] Removed. Installing Stable Engine (3.12)...
+    echo [OK] Removed. Installing Stable 3.12...
     winget install --id Python.Python.3.12 -e --silent --accept-package-agreements
     echo.
-    echo [SUCCESS] ENVIRONMENT REPAIRED. PLEASE RE-RUN SCRIPT.
+    echo [SUCCESS] Environment Reconfigured. PLEASE RE-RUN SCRIPT.
     pause
     exit
 )
 
-:: [5] Path Lock
+:: [3] Path Lock
 set "PY_DONE=0"
 for /f "delims=" %%i in ('where python') do (
     if "!PY_DONE!"=="0" (
         set "ABS_PY=%%i"
-        set "ABS_PYW=!ABS_PY:python.exe=pythonw.exe!"
-        if exist "!ABS_PYW!" (
-            echo !ABS_PYW! > "%~dp0python_path.txt"
-            echo [OK] Engine Locked: !ABS_PYW!
-            set "PY_DONE=1"
+        echo !ABS_PY! | findstr "python.exe" >nul
+        if !errorlevel! == 0 (
+            set "ABS_PYW=!ABS_PY:python.exe=pythonw.exe!"
+            if exist "!ABS_PYW!" (
+                echo !ABS_PYW! > "%~dp0python_path.txt"
+                echo [OK] Engine Locked: !ABS_PYW!
+                set "PY_DONE=1"
+            )
         )
     )
 )
 
 echo.
 echo ==========================================
-echo    [*] STEP 2/3: GPU ACCELERATION SYNC
+echo    [*] STEP 2/3: LIBRARY SYNC (v2.904)
 echo ==========================================
-echo [*] Cleaning environment...
-python -m pip uninstall torch torchvision -y --quiet >nul 2>&1
+echo [*] Removing old conflicts...
+python -m pip uninstall torch torchvision torchaudio -y --quiet
 
-echo [*] Installing Master v4.0 Core...
+echo [*] Upgrading System Libraries...
 python -m pip install --upgrade pip --quiet
 python -m pip install ultralytics mss opencv-python numpy pandas pyautogui pywin32 requests --no-cache-dir --quiet
 
-echo [*] Syncing AI Brain (Torch+CUDA CU121)...
-echo [!] This is the 10x SPEED BOOST. Initializing...
-python -m pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121 --no-cache-dir --quiet
+echo [*] Installing AI Brain (Torch+CUDA CU121)...
+echo [!] Downloading 2GB+ AI Engine. This takes time...
+python -m pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121 --no-cache-dir
+
+if %errorlevel% neq 0 (
+    echo [!] FAILED to install AI Engine. Check internet.
+    pause
+    exit
+)
 
 echo.
 echo ==========================================
-echo       [SUCCESS] SYSTEM v4.0 READY
+echo    [SUCCESS] MASTER v2.904 DEPLOYED
 echo ==========================================
-echo [*] Final Performance Test...
-python -c "import torch; print('+++ GPU STATUS: ACTIVE (MAX PERFORMANCE) +++' if torch.cuda.is_available() else '--- GPU STATUS: NOT FOUND (SLOW CPU) ---'); print('Device Name:', torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'None')"
+echo [*] Performing High-Level Hardware Check...
+python -c "import torch; print('+++ GPU STATUS: ACTIVE (ELITE PERFORMANCE) +++' if torch.cuda.is_available() else '--- GPU STATUS: NOT FOUND (SLOW CPU) ---'); print('Device:', torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'None')"
 
 echo.
-echo [OK] All versions synced to v4.0.
-timeout /t 10
+echo [OK] Optimization finished. Version: 2.904
+pause
