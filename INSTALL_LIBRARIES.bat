@@ -1,8 +1,8 @@
 @echo off
 setlocal enabledelayedexpansion
-title AI VISION ULTIMATE v7.1 (MASTER EDITION)
+title AI VISION ULTIMATE v8.0 (MASTER EDITION)
 
-:: --- [1] FORCE ADMINISTRATOR PRIVILEGES (BEST METHOD) ---
+:: --- [1] FORCE ADMINISTRATOR PRIVILEGES ---
 >nul 2>&1 "%SYSTEMROOT%\system32\cacls.exe" "%SYSTEMROOT%\system32\config\system"
 if '%errorlevel%' neq '0' (
     echo [!] Requesting Administrative Privileges...
@@ -14,7 +14,7 @@ if '%errorlevel%' neq '0' (
 if exist "%temp%\getadmin.vbs" ( del "%temp%\getadmin.vbs" )
 
 echo ==========================================
-echo    [+] STEP 1/4: UPDATING ENVIRONMENT...
+echo    [+] STEP 1/2: UPDATING ENVIRONMENT...
 echo ==========================================
 
 set "found_any=0"
@@ -26,14 +26,22 @@ if %errorlevel% == 0 (
     set "found_any=1"
     
     :: Get Absolute Path
-    for /f "delims=" %%i in ('where python') do set "ABS_PY=%%i"
-    set "ABS_PYW=!ABS_PY:python.exe=pythonw.exe!"
-    echo !ABS_PYW! > "%~dp0python_path.txt"
-    
-    echo [>] TARGETING ACTIVE: "!ABS_PYW!"
-    "!ABS_PY!" -m pip install --upgrade pip --quiet
-    "!ABS_PY!" -m pip install --upgrade ultralytics mss opencv-python numpy pandas pyautogui pywin32 requests --no-cache-dir --quiet
-    "!ABS_PY!" -m pip install --upgrade torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121 --quiet
+    for /f "delims=" %%i in ('where python') do (
+        set "ABS_PY=%%i"
+        set "ABS_PYW=!ABS_PY:python.exe=pythonw.exe!"
+        if exist "!ABS_PYW!" (
+            echo !ABS_PYW! > "%~dp0python_path.txt"
+            echo [OK] Path Locked: "!ABS_PYW!"
+            goto :sync_libs
+        )
+    )
+)
+
+:sync_libs
+if "!found_any!"=="1" (
+    python -m pip install --upgrade pip --quiet
+    python -m pip install --upgrade ultralytics mss opencv-python numpy pandas pyautogui pywin32 requests --no-cache-dir --quiet
+    python -m pip install --upgrade torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121 --quiet
     echo [OK] Sync Complete.
     goto :sync_launchers
 )
@@ -51,20 +59,6 @@ for %%d in ("C:\Program Files\Python312" "C:\Program Files\Python313" "C:\Progra
     )
 )
 
-:: [3] Deep Discovery
-if "!found_any!"=="0" (
-    echo [+] Deep Search for any linked Python instance...
-    for /f "delims=" %%p in ('where python 2^>nul') do (
-        set "found_any=1"
-        set "TARGET_PY=%%p"
-        set "TARGET_PYW=!TARGET_PY:python.exe=pythonw.exe!"
-        echo !TARGET_PYW! > "%~dp0python_path.txt"
-        "%%p" -m pip install --upgrade pip --quiet
-        "%%p" -m pip install --upgrade ultralytics mss opencv-python numpy pandas pyautogui pywin32 requests --quiet
-        goto :sync_launchers
-    )
-)
-
 :: [4] Automated Install (Last Resort)
 if "!found_any!"=="0" (
     echo [!] PYTHON MISSING. Starting Auto-Installation...
@@ -75,13 +69,11 @@ if "!found_any!"=="0" (
 )
 
 :sync_launchers
-
 echo.
 echo ==========================================
 echo    [+] STEP 2/2: SYNCING LAUNCHERS...
 echo ==========================================
 
-:: Download core launchers if missing or to ensure latest
 set "USERNAME=yaser14147-jpg"
 set "REPO=ow-vision"
 set "BRANCH=main"
@@ -95,7 +87,7 @@ curl -L -s "!BASE_URL!/START_AIMBOT.vbs" -o "%~dp0START_AIMBOT.vbs"
 echo.
 echo ==========================================
 echo       [SUCCESS] SYSTEM IS FULLY READY!
-echo             VERSION: v7.5 MASTER
+echo             VERSION: v8.0 MASTER
 echo   ENVIRONMENT LOCKED - LAUNCHERS READY.
 echo ==========================================
 pause

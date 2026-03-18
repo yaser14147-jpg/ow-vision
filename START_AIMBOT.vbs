@@ -6,7 +6,7 @@ StrPath = fso.GetParentFolderName(WScript.ScriptFullName)
 MainPyPath = fso.BuildPath(StrPath, "ow-vision\scripts\main.py")
 PathFile = fso.BuildPath(StrPath, "python_path.txt")
 
-' --- [2] FIND PYTHONW.EXE (ULTIMATE DEEP SEARCH v7.0) ---
+' --- [2] FIND PYTHONW.EXE (ULTIMATE DEEP SEARCH v8.0) ---
 Sub FindPythonW()
     On Error Resume Next
     FoundPy = ""
@@ -16,6 +16,8 @@ Sub FindPythonW()
         Set objFile = fso.OpenTextFile(PathFile, 1)
         SavedPath = Trim(objFile.ReadLine)
         objFile.Close
+        ' Remove any quotes if they accidentally got saved
+        SavedPath = Replace(SavedPath, """", "")
         If fso.FileExists(SavedPath) Then
             FoundPy = SavedPath
             Exit Sub
@@ -41,7 +43,7 @@ Sub FindPythonW()
                 FoundPy = fso.BuildPath(RootPath, "pythonw.exe")
                 Exit Sub
             End If
-            ' Scan subfolders (for things like 'pythoncore-3.14-64')
+            ' Scan subfolders
             Set RootFolder = fso.GetFolder(RootPath)
             For Each SubF In RootFolder.SubFolders
                 TestFile = fso.BuildPath(SubF.Path, "pythonw.exe")
@@ -52,11 +54,6 @@ Sub FindPythonW()
             Next
         End If
     Next
-    
-    ' Priority 4: Try 'pyw.exe' (Official Python Launcher)
-    Err.Clear
-    WshShell.Run "pyw.exe --version", 0, True
-    If Err.Number = 0 Then FoundPy = "pyw.exe": Exit Sub
 End Sub
 
 ' --- [3] RUN THE SCRIPT ---
@@ -73,7 +70,7 @@ If FoundPy <> "" Then
     ' Force use of FoundPy as the absolute runner
     WshShell.Run """" & FoundPy & """ """ & MainPyPath & """", 0, False
 Else
-    MsgBox "Could not find Python (pythonw.exe)!" & vbCrLf & _
+    MsgBox "Fatal Error: Could not find Python (pythonw.exe)!" & vbCrLf & _
            "Your system seems to have a custom Python installation." & vbCrLf & _
-           "Please run INSTALL_LIBRARIES.bat as Administrator once to link the system.", 16, "Fatal Environment Error"
+           "Please run INSTALL_LIBRARIES.bat as Administrator once to repair your environment.", 16, "Fatal Environment Error"
 End If

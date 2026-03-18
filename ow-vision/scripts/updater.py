@@ -5,14 +5,14 @@ import shutil
 import time
 import subprocess
 
-# --- System Synchronization Settings (v7.5 MEGA SYNC) ---
+# --- [1] System Synchronization Settings (v8.0 ULTIMATE MASTER) ---
 USERNAME = "yaser14147-jpg"
 REPO = "ow-vision"
 BRANCH = "main"
 
 BASE_RAW_URL = f"https://raw.githubusercontent.com/{USERNAME}/{REPO}/{BRANCH}"
 
-# Core System URLs
+# URLs for updates
 UPDATE_VERSION_URL = f"{BASE_RAW_URL}/ow-vision/scripts/version.json" 
 CODE_UPDATE_URL = f"{BASE_RAW_URL}/ow-vision/scripts/main.py"
 DETECT_UPDATE_URL = f"{BASE_RAW_URL}/ow-vision/scripts/ai/Detection.py"
@@ -37,7 +37,6 @@ LOCAL_MODEL_PATH = os.path.join(BASE_DIR, "models", "v2.pt")
 LOCAL_DEFAULT_JSON = os.path.join(BASE_DIR, "scripts", "configs", "Default.json")
 PYTHON_PATH_FILE = os.path.join(ROOT_DIR, "python_path.txt")
 
-# Launcher local paths
 LOCAL_INSTALL_BAT = os.path.join(ROOT_DIR, "INSTALL_LIBRARIES.bat")
 LOCAL_UPDATE_BAT = os.path.join(ROOT_DIR, "UPDATE_PROGRAM.bat")
 LOCAL_START_VBS = os.path.join(ROOT_DIR, "START_AIMBOT.vbs")
@@ -59,13 +58,17 @@ def download_file(url, local_path):
         return False
 
 def fix_environment():
-    """Ensures the python_path.txt is always correct for the VBS runner."""
+    """Forces the python_path.txt to be absolutely correct for the VBS runner."""
     try:
         py_path = shutil.which("python")
         if py_path:
-            pyw_path = py_path.replace("python.exe", "pythonw.exe")
-            with open(PYTHON_PATH_FILE, "w") as f:
-                f.write(pyw_path)
+            # Resolve absolute path to pythonw.exe
+            abs_py = os.path.abspath(py_path).lower()
+            abs_pyw = abs_py.replace("python.exe", "pythonw.exe")
+            if os.path.exists(abs_pyw):
+                with open(PYTHON_PATH_FILE, "w") as f:
+                    f.write(abs_pyw)
+                print(f"[OK] Path Locked: {os.path.basename(abs_pyw)}")
     except: pass
 
 def check_for_updates():
@@ -94,46 +97,34 @@ def check_for_updates():
                 print("[+] Starting MEGA SYSTEM Sync...")
                 
                 success = True
-                
-                # 1. Root Launcher Refresh
                 download_file(INSTALL_BAT_URL, LOCAL_INSTALL_BAT)
                 download_file(UPDATE_BAT_URL, LOCAL_UPDATE_BAT)
                 download_file(START_VBS_URL, LOCAL_START_VBS)
                 
-                # 2. AI Engine & Model Update
-                if not os.path.exists(LOCAL_MODEL_PATH) or float(remote['version']) >= 6.5:
+                if not os.path.exists(LOCAL_MODEL_PATH) or float(remote['version']) >= 8.0:
                      download_file(MODEL_URL, LOCAL_MODEL_PATH)
                 
-                # 3. Core Presets (Only Default to protect user saves like Soldier)
                 download_file(CONFIG_DEFAULT_URL, LOCAL_DEFAULT_JSON)
-                
-                # 4. Core App Scripts
                 if not download_file(CODE_UPDATE_URL, MAIN_PY_PATH): success = False
                 if not download_file(DETECT_UPDATE_URL, DETECTION_PY_PATH): success = False
                 
-                # 5. Fix Environment for VBS
                 fix_environment()
-                
-                # 6. Update the Updater last
                 download_file(UPDATER_UPDATE_URL, UPDATER_PY_PATH)
                 
-                # 7. Finalize version sync
                 if download_file(UPDATE_VERSION_URL, LOCAL_VERSION_PATH):
                     print("\n[SUCCESS] MEGA SYNC COMPLETE! System is v" + str(remote['version']))
-                else:
-                    success = False
+                else: success = False
 
                 if not success:
-                    print("\n[!] Notice: Some core components failed. Retry suggested.")
+                    print("\n[!] Notice: Some components failed to sync. Retry suggested.")
             else:
                 print("\n[OK] System is healthy and up-to-date!")
-                # Always fix environment just in case
                 fix_environment()
         else:
-            print(f"\n[!] Connection to Cloud failed.")
+            print(f"\n[!] Connection failed.")
             
     except Exception as e:
-        print(f"\n[!] Unexpected sync error.")
+        print(f"\n[!] Unexpected error.")
 
 if __name__ == "__main__":
     check_for_updates()
