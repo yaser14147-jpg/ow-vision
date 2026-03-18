@@ -1,6 +1,6 @@
 @echo off
 setlocal enabledelayedexpansion
-title AI VISION MASTER INSTALLER v6.3
+title AI VISION FINAL SHIELD v6.4
 
 :: --- [1] FORCE ADMINISTRATOR PRIVILEGES (BEST METHOD) ---
 >nul 2>&1 "%SYSTEMROOT%\system32\cacls.exe" "%SYSTEMROOT%\system32\config\system"
@@ -47,6 +47,10 @@ for %%d in ("C:\Program Files\Python312" "C:\Program Files\Python311" "%LocalApp
     if exist "%%~d\python.exe" (
         set "found_any=1"
         echo [+] Found at: "%%~d\python.exe"
+        
+        :: Save path for the VBS runner
+        echo %%~d\pythonw.exe > "%~dp0python_path.txt"
+        
         "%%~d\python.exe" -m pip install --upgrade pip --quiet
         "%%~d\python.exe" -m pip install --upgrade ultralytics mss opencv-python numpy pandas pyautogui pywin32 requests --quiet
         goto :sync_launchers
@@ -59,6 +63,12 @@ if "!found_any!"=="0" (
     for /f "delims=" %%p in ('where python 2^>nul') do (
         set "found_any=1"
         echo [+] Found target: "%%p"
+        
+        :: Save path for the VBS runner
+        set "p_pathw=%%p"
+        set "p_pathw=!p_pathw:python.exe=pythonw.exe!"
+        echo !p_pathw! > "%~dp0python_path.txt"
+        
         "%%p" -m pip install --upgrade pip --quiet
         "%%p" -m pip install --upgrade ultralytics mss opencv-python numpy pandas pyautogui pywin32 requests --quiet
         goto :sync_launchers
@@ -95,7 +105,7 @@ curl -L -s "!BASE_URL!/START_AIMBOT.vbs" -o "%~dp0START_AIMBOT.vbs"
 echo.
 echo ==========================================
 echo       [SUCCESS] SYSTEM IS FULLY READY!
-echo             VERSION: v6.3 MASTER
-echo   ENVIRONMENT SAVED AND LAUNCHERS READY.
+echo             VERSION: v6.4 SHIELD
+echo   PYTHON PATH LOCKED AND SYSTEM SYNCED.
 echo ==========================================
 pause
