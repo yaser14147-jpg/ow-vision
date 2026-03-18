@@ -53,7 +53,7 @@ def download_file(url, local_path):
 
 def check_for_updates():
     print("==========================================")
-    print(f"   Connecting to GitHub (@{USERNAME})")
+    print("      [*] Checking for Updates...")
     print("==========================================")
     
     if not os.path.exists(LOCAL_VERSION_PATH):
@@ -82,11 +82,14 @@ def check_for_updates():
                 if not download_file(DETECT_UPDATE_URL, DETECTION_PY_PATH): success = False
                 if not download_file(UPDATER_UPDATE_URL, UPDATER_PY_PATH): success = False
                 
-                # تحميل وتحديث ملفات الـ Bat والـ VBS لضمان تحديث النظام بالكامل
-                print("[+] Syncing launcher files...")
+                # تحميل وتحديث ملفات الجِذر لضمان تحديث الحماية والتثبيت
+                print("[+] Updating System Launchers (Root)...")
                 download_file(INSTALL_BAT_URL, LOCAL_INSTALL_BAT)
                 download_file(UPDATE_BAT_URL, LOCAL_UPDATE_BAT)
                 download_file(START_VBS_URL, LOCAL_START_VBS)
+                
+                # تحديث ملف الـ version.json نفسه في الأخير
+                download_file(f"{UPDATE_VERSION_URL}", LOCAL_VERSION_PATH)
                 
                 if success:
                     with open(LOCAL_VERSION_PATH, 'w') as f:
