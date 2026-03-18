@@ -1,4 +1,4 @@
-title AI VISION TURBO SYNC v7.5
+title AI VISION ULTIMATE SYNC v9.0
 
 echo ==========================================
 echo    [*] Searching for System Updates...
