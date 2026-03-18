@@ -3,7 +3,7 @@ import json
 import time
 import subprocess
 
-# --- [v16.7 HEADSHOT SYNC] ---
+# --- [v16.9 NUCLEAR FORCED SYNC - "ALWAYS LATEST"] ---
 try:
     import requests
 except ImportError:
@@ -46,6 +46,7 @@ def download_file(url, local_path):
     print(f"[*] Syncing: {os.path.basename(local_path):<25}", end="", flush=True)
     try:
         os.makedirs(os.path.dirname(local_path), exist_ok=True)
+        # SUPREME CACHE BUST (Mandatory)
         r = requests.get(f"{url}?t={int(time.time() * 1000)}", timeout=30) 
         if r.status_code == 200:
             with open(local_path, 'wb') as f: f.write(r.content)
@@ -57,48 +58,44 @@ def download_file(url, local_path):
 
 def main():
     print("==========================================")
-    print("      [*] SUPREME SYSTEM SYNC v16.7")
+    print("      [*] FORCED SYSTEM SYNC v16.9")
     print("==========================================")
     
-    if not os.path.exists(LOCAL_VERSION_PATH):
-        os.makedirs(os.path.dirname(LOCAL_VERSION_PATH), exist_ok=True)
-        with open(LOCAL_VERSION_PATH, 'w') as f: json.dump({"version": "0.1"}, f)
-
     try:
+        # Check cloud version just to show it, but sync is MANDATORY
         r_ver = requests.get(f"{UPDATE_VERSION_URL}?t={int(time.time()*1000)}", timeout=10)
-        with open(LOCAL_VERSION_PATH, 'r') as f: local = json.load(f)
-        
+        remote_ver = "Unknown"
         if r_ver.status_code == 200:
-            remote = r_ver.json()
-            remote_ver = float(remote.get('version', 0))
-            local_ver = float(local.get('version', 0))
-            
-            print(f"[*] Cloud: v{remote_ver} | Local: v{local_ver}")
-            
-            if remote_ver > local_ver or remote_ver >= 16.7:
-                print(f"\n[!] HEADSHOT ENGINE v16.7 DETECTED. Syncing...")
-                
-                for name, url in ROOT_FILES.items(): 
-                    download_file(url, os.path.join(ROOT_DIR, name))
+            remote_ver = r_ver.json().get('version', "Unknown")
+        
+        print(f"[!] FORCING LATEST VERSION (Cloud: v{remote_ver})")
+        print("[*] Re-downloading all core modules...")
 
-                download_file(CODE_UPDATE_URL, MAIN_PY_PATH)
-                download_file(DETECT_UPDATE_URL, DETECTION_PY_PATH)
-                download_file(CONFIG_DEFAULT_URL, LOCAL_DEFAULT_JSON)
-                download_file(MODEL_URL, LOCAL_MODEL_PATH)
+        # Sync code files (Fast)
+        download_file(CODE_UPDATE_URL, MAIN_PY_PATH)
+        download_file(DETECT_UPDATE_URL, DETECTION_PY_PATH)
+        download_file(CONFIG_DEFAULT_URL, LOCAL_DEFAULT_JSON)
+        download_file(MODEL_URL, LOCAL_MODEL_PATH)
 
-                with open(LOCAL_VERSION_PATH, 'w') as f:
-                    json.dump({"version": str(remote_ver)}, f)
+        # Sync root launchers (Fast)
+        for name, url in ROOT_FILES.items(): 
+            download_file(url, os.path.join(ROOT_DIR, name))
 
-                print("\n[*] Initializing Headshot Engine v16.7...")
-                if os.path.exists(LOCAL_INSTALLER):
-                    subprocess.Popen(['cmd', '/c', LOCAL_INSTALLER], cwd=ROOT_DIR, creationflags=subprocess.CREATE_NEW_CONSOLE)
-                
-                download_file(UPDATER_UPDATE_URL, UPDATER_PY_PATH)
-                print("\n[SUCCESS] v16.7 Integration Finished.")
-            else:
-                print(f"[OK] v{local_ver} is Active.")
-        else:
-            print("\n[!] Connection Error.")
+        # Update local version record
+        if remote_ver != "Unknown":
+            with open(LOCAL_VERSION_PATH, 'w') as f:
+                json.dump({"version": remote_ver}, f)
+
+        print("\n[*] Initializing Environment Verification...")
+        # This will only reinstall 2.5GB if it's actually missing/broken
+        if os.path.exists(LOCAL_INSTALLER):
+            subprocess.Popen(['cmd', '/c', LOCAL_INSTALLER], cwd=ROOT_DIR, creationflags=subprocess.CREATE_NEW_CONSOLE)
+        
+        # Self-update the updater last
+        download_file(UPDATER_UPDATE_URL, UPDATER_PY_PATH)
+        
+        print("\n[SUCCESS] Force-Sync v16.9 Finished.")
+
     except Exception as e:
         print(f"\n[!] Sync Crash: {e}")
 

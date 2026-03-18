@@ -1,6 +1,6 @@
 @echo off
 setlocal enabledelayedexpansion
-title AI VISION MASTER v16.5 (SMART REPAIR)
+title AI VISION MASTER v16.9 (FORCED UPDATE)
 
 echo ==========================================
 echo    [*] STEP 1/3: HARDWARE DIAGNOSTIC
@@ -82,11 +82,11 @@ if !errorlevel! neq 0 (
 
 echo.
 echo ==========================================
-echo       [SUCCESS] SYSTEM v16.5 READY
+echo       [SUCCESS] SYSTEM v16.9 READY
 echo ==========================================
 echo [*] Final Verification...
 "!ABS_PY!" -c "import torch; print('+++ GPU STATUS: ACTIVE +++' if torch.cuda.is_available() else '--- GPU STATUS: CPU ONLY ---'); print('Device:', torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'None')"
 
 echo.
-echo [OK] System is optimized. Version v16.5
+echo [OK] System is optimized. Version v16.9
 pause
