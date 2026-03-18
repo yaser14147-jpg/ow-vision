@@ -1,6 +1,6 @@
 @echo off
 setlocal enabledelayedexpansion
-title AI VISION MASTER v2.904 (ULTIMATE STABILITY)
+title AI VISION MASTER v2.905 (ULTIMATE STABILITY)
 
 :: CRITICAL: Add absolute pause if anything fails
 echo ==========================================
@@ -66,7 +66,7 @@ for /f "delims=" %%i in ('where python') do (
 
 echo.
 echo ==========================================
-echo    [*] STEP 2/3: LIBRARY SYNC (v2.904)
+echo    [*] STEP 2/3: LIBRARY SYNC (v2.905)
 echo ==========================================
 echo [*] Removing old conflicts...
 python -m pip uninstall torch torchvision torchaudio -y --quiet
@@ -87,11 +87,11 @@ if %errorlevel% neq 0 (
 
 echo.
 echo ==========================================
-echo    [SUCCESS] MASTER v2.904 DEPLOYED
+echo    [SUCCESS] MASTER v2.905 DEPLOYED
 echo ==========================================
 echo [*] Performing High-Level Hardware Check...
 python -c "import torch; print('+++ GPU STATUS: ACTIVE (ELITE PERFORMANCE) +++' if torch.cuda.is_available() else '--- GPU STATUS: NOT FOUND (SLOW CPU) ---'); print('Device:', torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'None')"
 
 echo.
-echo [OK] Optimization finished. Version: 2.904
+echo [OK] Optimization finished. Version: 2.905
 pause
