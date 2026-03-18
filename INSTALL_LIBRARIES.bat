@@ -1,6 +1,6 @@
 @echo off
 setlocal enabledelayedexpansion
-title AI VISION MASTER INSTALLER v6.1
+title AI VISION MASTER INSTALLER v6.2
 
 :: --- [1] FORCE ADMINISTRATOR PRIVILEGES (BEST METHOD) ---
 >nul 2>&1 "%SYSTEMROOT%\system32\cacls.exe" "%SYSTEMROOT%\system32\config\system"
@@ -27,6 +27,13 @@ if %errorlevel% == 0 (
     set "p_path=python"
     
     echo [>] TARGETING ACTIVE: "!p_path!"
+    
+    :: Save path for the VBS runner
+    set "p_pathw=!p_path:python.exe=pythonw.exe!"
+    for /f "delims=" %%i in ('where !p_path!') do set "FULL_PY=%%i"
+    set "FULL_PYW=!FULL_PY:python.exe=pythonw.exe!"
+    echo !FULL_PYW! > "%~dp0python_path.txt"
+    
     "!p_path!" -m pip install --upgrade pip --quiet
     "!p_path!" -m pip install --upgrade ultralytics mss opencv-python numpy pandas pyautogui pywin32 requests --no-cache-dir --quiet
     "!p_path!" -m pip install --upgrade torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121 --quiet
@@ -88,7 +95,7 @@ curl -L -s "!BASE_URL!/START_AIMBOT.vbs" -o "%~dp0START_AIMBOT.vbs"
 echo.
 echo ==========================================
 echo       [SUCCESS] SYSTEM IS FULLY READY!
-echo             VERSION: v6.1 MASTER
-echo   FAST SYNC: LIBRARIES AND LAUNCHERS READY.
+echo             VERSION: v6.2 MASTER
+echo   ENVIRONMENT SAVED AND LAUNCHERS READY.
 echo ==========================================
 pause
