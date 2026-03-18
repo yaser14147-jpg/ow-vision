@@ -1,6 +1,6 @@
 @echo off
 setlocal enabledelayedexpansion
-title AI VISION ULTIMATE INSTALLER v5.2
+title AI VISION ULTIMATE INSTALLER v5.3
 
 :: --- [1] FORCE ADMINISTRATOR PRIVILEGES (BEST METHOD) ---
 >nul 2>&1 "%SYSTEMROOT%\system32\cacls.exe" "%SYSTEMROOT%\system32\config\system"
@@ -58,7 +58,7 @@ if "!found_any!"=="0" (
 
 echo.
 echo ==========================================
-echo    [+] STEP 3/4: SYNCING LAUNCHERS...
+echo    [+] STEP 2/2: SYNCING LAUNCHERS...
 echo ==========================================
 
 :: Download core launchers if missing or to ensure latest
@@ -75,7 +75,7 @@ curl -L -s "!BASE_URL!/START_AIMBOT.vbs" -o "%~dp0START_AIMBOT.vbs"
 echo.
 echo ==========================================
 echo       [SUCCESS] SYSTEM IS FULLY READY!
-echo             VERSION: v5.2 MASTER
+echo             VERSION: v5.3 MASTER
 echo   ALL ENGINES, LIBRARIES, AND LAUNCHERS SYNCED.
 echo ==========================================
 pause

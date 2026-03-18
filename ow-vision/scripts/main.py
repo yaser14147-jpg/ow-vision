@@ -12,7 +12,8 @@ import threading
 
 # إيقاف أي كود قد يسبب وميضاً
 
-CONFIG_DIR = r"C:\Users\yaser\Desktop\AI\ow-vision\scripts\configs"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+CONFIG_DIR = os.path.join(BASE_DIR, "configs")
 if not os.path.exists(CONFIG_DIR):
     os.makedirs(CONFIG_DIR)
 
@@ -27,7 +28,7 @@ DEFAULT_CONFIG = {
     "enable_aim": False
 }
 
-ACTIVE_CFG_PATH = r"C:\Users\yaser\Desktop\AI\ow-vision\scripts\config.json"
+ACTIVE_CFG_PATH = os.path.join(BASE_DIR, "config.json")
 
 def save_active_config(cfg):
     try:
@@ -117,7 +118,7 @@ class ClassicAHKUI:
         self.aimbot_running = False
         
         # تحميل رقم الإصدار
-        self.app_version = "5.2"
+        self.app_version = "5.3"
         try:
             v_path = os.path.join(os.path.dirname(__file__), "version.json")
             if os.path.exists(v_path):
