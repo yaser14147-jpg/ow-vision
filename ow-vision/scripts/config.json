@@ -7,5 +7,5 @@
     "trigger_key": "XButton 2",
     "trigger_key_hex": "0x6",
     "visualize": false,
-    "enable_aim": true
+    "enable_aim": false
 }

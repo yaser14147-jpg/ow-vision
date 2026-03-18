@@ -69,7 +69,7 @@ class ClassicAHKUI:
     def __init__(self, root):
         self.root = root
         self.root.title("overwatch-ai")
-        self.root.geometry("340x480") # ULTIMATE COMPACT
+        self.root.geometry("340x510") # ELITE ADJUSTED
         self.root.resizable(False, False)
         self.root.wm_attributes("-toolwindow", True); self.root.wm_attributes("-topmost", True)
         
@@ -81,7 +81,7 @@ class ClassicAHKUI:
         style = ttk.Style(); style.theme_use('vista')
         self.root.eval('tk::PlaceWindow . center')
         
-        self.current_lang = "AR"; self.visualize_active = False; self.aimbot_running = False; self.app_version = "24.0"; self.process = None
+        self.current_lang = "AR"; self.visualize_active = False; self.aimbot_running = False; self.app_version = "25.0"; self.process = None
         
         main_frame = ttk.Frame(root, padding="10 10 10 10")
         main_frame.pack(fill=tk.BOTH, expand=True)

@@ -1,6 +1,6 @@
 @echo off
 setlocal enabledelayedexpansion
-title AI VISION MASTER v24.0 (STABLE SPEED)
+title AI VISION MASTER v25.0 (FINAL ADJUST)
 
 echo ==========================================
 echo    [*] STEP 1/3: HARDWARE DIAGNOSTIC
@@ -74,7 +74,7 @@ if !errorlevel! neq 0 (
 
 echo.
 echo ==========================================
-echo       [SUCCESS] SYSTEM v24.0 READY
+echo       [SUCCESS] SYSTEM v25.0 READY
 echo ==========================================
-echo [*] Status: v24.0 Master.
+echo [*] Status: v25.0 Master.
 pause
