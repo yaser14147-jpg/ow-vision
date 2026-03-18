@@ -1,6 +1,6 @@
 @echo off
 setlocal enabledelayedexpansion
-title AI VISION MASTER INSTALLER v2.9
+title AI VISION ULTIMATE INSTALLER v5.0
 
 :: --- [1] FORCE ADMINISTRATOR PRIVILEGES (BEST METHOD) ---
 >nul 2>&1 "%SYSTEMROOT%\system32\cacls.exe" "%SYSTEMROOT%\system32\config\system"
@@ -74,7 +74,7 @@ echo [OK] Saved working Python path for START_AIMBOT.vbs
 echo.
 echo ==========================================
 echo       [SUCCESS] SYSTEM IS FULLY READY!
-echo             VERSION: v2.9 MASTER
-echo   ALL LIBRARIES AND LAUNCHERS ARE UP-TO-DATE.
+echo             VERSION: v5.0 ULTIMATE
+echo   ALL LIBRARIES AND ENGINES ARE UP-TO-DATE.
 echo ==========================================
 pause

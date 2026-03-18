@@ -2,8 +2,9 @@ import requests
 import json
 import os
 import shutil
+import time
 
-# --- إعدادات التحديث لحساب Yaser14147 ---
+# --- System Synchronization Settings ---
 USERNAME = "yaser14147-jpg"
 REPO = "ow-vision"
 BRANCH = "main"
@@ -15,21 +16,20 @@ CODE_UPDATE_URL = f"{BASE_RAW_URL}/ow-vision/scripts/main.py"
 DETECT_UPDATE_URL = f"{BASE_RAW_URL}/ow-vision/scripts/ai/Detection.py"
 UPDATER_UPDATE_URL = f"{BASE_RAW_URL}/ow-vision/scripts/updater.py"
 
-# روابط ملفات التشغيل في الجذر (Root)
+# Launcher Files (Root)
 INSTALL_BAT_URL = f"{BASE_RAW_URL}/INSTALL_LIBRARIES.bat"
 UPDATE_BAT_URL = f"{BASE_RAW_URL}/UPDATE_PROGRAM.bat"
 START_VBS_URL = f"{BASE_RAW_URL}/START_AIMBOT.vbs"
 
-# تحديد المسارات برمجياً ليعمل البرنامج حتى لو تغير اسم المجلد
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) # مجلد ow-vision
-ROOT_DIR = os.path.dirname(BASE_DIR) # المجلد الرئيسي (Aim أو AI)
+# Path Resolution
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) # ow-vision
+ROOT_DIR = os.path.dirname(BASE_DIR) 
 
 LOCAL_VERSION_PATH = os.path.join(BASE_DIR, "scripts", "version.json")
 MAIN_PY_PATH = os.path.join(BASE_DIR, "scripts", "main.py")
 DETECTION_PY_PATH = os.path.join(BASE_DIR, "scripts", "ai", "Detection.py")
 UPDATER_PY_PATH = os.path.join(BASE_DIR, "scripts", "updater.py")
 
-# مسارات ملفات الجِذر المحلية
 LOCAL_INSTALL_BAT = os.path.join(ROOT_DIR, "INSTALL_LIBRARIES.bat")
 LOCAL_UPDATE_BAT = os.path.join(ROOT_DIR, "UPDATE_PROGRAM.bat")
 LOCAL_START_VBS = os.path.join(ROOT_DIR, "START_AIMBOT.vbs")
@@ -37,16 +37,17 @@ LOCAL_START_VBS = os.path.join(ROOT_DIR, "START_AIMBOT.vbs")
 def download_file(url, local_path):
     print(f"[*] Syncing: {os.path.basename(local_path)}...")
     try:
-        r = requests.get(url, stream=True, timeout=10)
+        # Prevent caching
+        url_with_cache_bust = f"{url}?t={int(time.time())}"
+        r = requests.get(url_with_cache_bust, stream=True, timeout=15)
         if r.status_code == 200:
             with open(local_path, 'wb') as f:
                 for chunk in r.iter_content(chunk_size=1024):
                     if chunk:
                         f.write(chunk)
             return True
-        else:
-            return False
-    except Exception as e:
+        return False
+    except:
         return False
 
 def check_for_updates():
@@ -55,6 +56,7 @@ def check_for_updates():
     print("==========================================")
     
     if not os.path.exists(LOCAL_VERSION_PATH):
+        os.makedirs(os.path.dirname(LOCAL_VERSION_PATH), exist_ok=True)
         with open(LOCAL_VERSION_PATH, 'w') as f:
             json.dump({"version": "0.1"}, f)
 
@@ -64,48 +66,45 @@ def check_for_updates():
             
         print(f"[*] Local System Version: v{local['version']}")
         
-        import time
+        # Check remote version
         r = requests.get(f"{UPDATE_VERSION_URL}?t={int(time.time())}", timeout=5)
         if r.status_code == 200:
             remote = r.json()
             
             if float(remote['version']) > float(local['version']):
-                print(f"\n[!] UPDATE FOUND: v{remote['version']}!")
+                print(f"\n[!] NEW UPDATE DETECTED: v{remote['version']}!")
                 print("------------------------------------------")
-                print("[+] Starting FULL System Sync...")
+                print("[+] Starting ULTIMATE System Sync...")
                 
-                # تحديث جذري وشامل يبدأ بالملفات الخارجية
                 success = True
                 
-                # 1. تحديث ملفات التحكم والتشغيل (Root)
+                # 1. Update Root Launchers (Priority)
                 if not download_file(INSTALL_BAT_URL, LOCAL_INSTALL_BAT): success = False
                 if not download_file(UPDATE_BAT_URL, LOCAL_UPDATE_BAT): success = False
                 if not download_file(START_VBS_URL, LOCAL_START_VBS): success = False
                 
-                # 2. تحديث السكربتات الأساسية
+                # 2. Update Core Scripts
                 if not download_file(CODE_UPDATE_URL, MAIN_PY_PATH): success = False
                 if not download_file(DETECT_UPDATE_URL, DETECTION_PY_PATH): success = False
                 
-                # 3. تحديث ملف التحديث نفسه (الأخير عشان ما يوقف البحث)
+                # 3. Update the Updater itself
                 if not download_file(UPDATER_UPDATE_URL, UPDATER_PY_PATH): success = False
                 
-                # 4. تحديث سجل الإصدار
-                download_file(f"{UPDATE_VERSION_URL}", LOCAL_VERSION_PATH)
-                
-                if success:
-                    with open(LOCAL_VERSION_PATH, 'w') as f:
-                        json.dump(remote, f, indent=4)
-                    print("\n[SUCCESS] System is now fully synced to v" + str(remote['version']))
+                # 4. Finalize version sync
+                if download_file(UPDATE_VERSION_URL, LOCAL_VERSION_PATH):
+                    print("\n[SUCCESS] System is now fully refreshed to v" + str(remote['version']))
                 else:
-                    print("\n[!] Partial update complete. Some files may need retry.")
+                    success = False
+
+                if not success:
+                    print("\n[!] Notice: Some components failed to sync. Please retry.")
             else:
-                print("\nYou are currently on the latest version!")
+                print("\n[OK] System is fully up-to-date!")
         else:
-            print(f"\n[!] Update link not found (Error {r.status_code})")
-            print("Make sure files are uploaded to GitHub 'main' branch.")
+            print(f"\n[!] Connection Error: {r.status_code}")
             
     except Exception as e:
-        print(f"\n[!] Error connecting to GitHub. Retrying later.")
+        print(f"\n[!] Unexpected Error during sync.")
 
 if __name__ == "__main__":
     check_for_updates()
