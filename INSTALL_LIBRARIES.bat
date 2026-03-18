@@ -76,8 +76,6 @@ if "!found_any!"=="0" (
 
 :sync_launchers
 
-:sync_launchers
-
 echo.
 echo ==========================================
 echo    [+] STEP 2/2: SYNCING LAUNCHERS...
@@ -97,7 +95,7 @@ curl -L -s "!BASE_URL!/START_AIMBOT.vbs" -o "%~dp0START_AIMBOT.vbs"
 echo.
 echo ==========================================
 echo       [SUCCESS] SYSTEM IS FULLY READY!
-echo             VERSION: v7.0 MASTER
+echo             VERSION: v7.5 MASTER
 echo   ENVIRONMENT LOCKED - LAUNCHERS READY.
 echo ==========================================
 pause
