@@ -1,6 +1,6 @@
 @echo off
 setlocal enabledelayedexpansion
-title AI VISION MASTER v16.9 (FORCED UPDATE)
+title AI VISION MASTER v17.5 (PRESET ENGINE)
 
 echo ==========================================
 echo    [*] STEP 1/3: HARDWARE DIAGNOSTIC
@@ -11,8 +11,6 @@ echo [*] Checking NVIDIA Driver Status...
 nvidia-smi >nul 2>&1
 if %errorlevel% neq 0 (
     echo [!] CRITICAL ERROR: NVIDIA Drivers not found.
-    echo [!] Your GPU is invisible to the AI.
-    echo [!] Please install Drivers at: https://www.nvidia.com/Download/index.aspx
     echo.
 ) else (
     echo [OK] NVIDIA GPU Detected.
@@ -57,16 +55,10 @@ echo [*] Target Engine: !ABS_PY!
 :: Check if torch with CUDA is already working
 "!ABS_PY!" -c "import torch, torchvision; exit(0 if torch.cuda.is_available() else 1)" >nul 2>&1
 if !errorlevel! == 0 (
-    echo [OK] AI Engine (GPU) is already active. Skipping core download...
+    echo [OK] AI Engine (GPU) is already active.
 ) else (
-    echo [!] GPU Engine missing or invalid (CPU mode).
-    echo [!] Starting Forced GPU Installation...
-    
-    :: Clean up only if it's the wrong version to avoid bloat
+    echo [!] GPU Engine missing or invalid. Fixing...
     "!ABS_PY!" -m pip uninstall torch torchvision torchaudio -y --quiet
-    
-    echo [*] Installing High-Performance Engine (CUDA 12.1)...
-    echo [!] This is ~2.5GB. Please wait...
     "!ABS_PY!" -m pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121 --no-cache-dir
 )
 
@@ -82,11 +74,7 @@ if !errorlevel! neq 0 (
 
 echo.
 echo ==========================================
-echo       [SUCCESS] SYSTEM v16.9 READY
+echo       [SUCCESS] SYSTEM v17.5 READY
 echo ==========================================
-echo [*] Final Verification...
-"!ABS_PY!" -c "import torch; print('+++ GPU STATUS: ACTIVE +++' if torch.cuda.is_available() else '--- GPU STATUS: CPU ONLY ---'); print('Device:', torch.cuda.get_device_name(0) if torch.cuda.is_available() else 'None')"
-
-echo.
-echo [OK] System is optimized. Version v16.9
+echo [*] Status: v17.5 Master.
 pause
