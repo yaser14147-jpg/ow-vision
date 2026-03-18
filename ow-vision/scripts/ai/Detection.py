@@ -14,7 +14,7 @@ import json
 import os
 import ctypes
 
-# --- [v16.7 HEADSHOT ENGINE - ELITE PRECISION] ---
+# --- [v17.0 HEADSHOT-ONLY VISION - ELITE PURITY] ---
 
 # 1. IMMEDIATE DPI AWARENESS
 try:
@@ -75,15 +75,15 @@ class Detection:
         region = {"top": top, "left": left, "width": CAPTURE_SIZE, "height": CAPTURE_SIZE}
         capture_center = CAPTURE_SIZE // 2
         
-        # Hardware Sync (v16.7 Elite Check)
+        # Hardware Sync (v17.0 Elite Check)
         device = "cuda" if torch.cuda.is_available() else "cpu"
         
         print(f"==========================================")
-        print(f"   [*] HEADSHOT ENGINE v16.7")
+        print(f"   [*] HEADSHOT VISION v17.0")
         print(f"   [*] DEVICE: {device.upper()}")
         if device == "cuda":
             print(f"   [*] GPU: {torch.cuda.get_device_name(0)}")
-            print(f"   [*] MODE: HEADSHOT PRECISION")
+            print(f"   [*] MODE: HEAD-ONLY PURITY")
         else:
             print(f"   [!] WARNING: CPU MODE ACTIVE")
         print(f"==========================================")
@@ -140,10 +140,11 @@ class Detection:
                     
                     if cls not in [0, 1]: continue 
                     
-                    # Target Calculation (v16.7: Aim at HEAD area)
+                    # Target Calculation (v17.0: Aim at HEAD)
                     cx = (x1 + x2) / 2
                     height = y2 - y1
-                    # Aim at roughly 15% down from the top of the head for maximum headshot probability
+                    width = x2 - x1
+                    # Core head position
                     cy = y1 + (height * 0.15) 
                     
                     dist = math.dist([cx, cy], [capture_center, capture_center])
@@ -152,13 +153,26 @@ class Detection:
                         closest_dist = dist
                         target = (cx, cy, x1, y1, x2, y2)
                     
-                    # RENDER 'THE EYE' PERSPECTIVE
+                    # RENDER 'THE EYE' - [v17.0: HEAD ONLY]
                     if self.visualize:
-                        color = (0, 0, 255) if target and target[0] == cx else (0, 255, 0)
-                        cv2.rectangle(screenshot, (int(x1), int(y1)), (int(x2), int(y2)), color, 2)
-                        # Mark the target point
-                        cv2.circle(screenshot, (int(cx), int(cy)), 3, (0, 0, 255), -1)
-                        cv2.putText(screenshot, f"AI: {int(conf*100)}%", (int(x1), int(y1)-5), cv2.FONT_HERSHEY_SIMPLEX, 0.4, color, 1)
+                        is_target = target and target[0] == cx
+                        color = (0, 0, 255) if is_target else (0, 255, 0)
+                        
+                        # Calculate a small box around the head only
+                        head_size = int(width * 0.4) # Head is roughly 40% of body width
+                        hx1 = int(cx - head_size)
+                        hy1 = int(cy - head_size)
+                        hx2 = int(cx + head_size)
+                        hy2 = int(cy + head_size)
+                        
+                        # Draw high-precision head box
+                        cv2.rectangle(screenshot, (hx1, hy1), (hx2, hy2), color, 2)
+                        
+                        # Center target dot
+                        cv2.circle(screenshot, (int(cx), int(cy)), 2, color, -1)
+                        
+                        # Discrete text
+                        cv2.putText(screenshot, f"H: {int(conf*100)}%", (hx1, hy1-5), cv2.FONT_HERSHEY_SIMPLEX, 0.4, color, 1)
 
                 # EXECUTION FLOW
                 trigger = (win32api.GetAsyncKeyState(self.trigger_key) < 0)
@@ -171,7 +185,7 @@ class Detection:
                     is_on = (x1 <= capture_center <= x2) and (y1 <= capture_center <= y2)
                     smooth = self.SMOOTH_IN if is_on else self.SMOOTH_OUT
                     
-                    # SCALING PARITY (v16.7 Precision)
+                    # SCALING PARITY (v17.0 Precision)
                     move_x = (dx * self.SENS_COMP * scale_factor) / smooth
                     move_y = (dy * self.SENS_COMP * scale_factor) / smooth
                     
@@ -180,9 +194,8 @@ class Detection:
 
                 # DUAL-WINDOW UI ENGINE
                 if self.visualize:
-                    # Draw Master FOV Ring
                     cv2.circle(screenshot, (capture_center, capture_center), int(normalized_fov), (255, 255, 0), 1)
-                    window_name = 'AI VISION EYE v16.7'
+                    window_name = 'AI VISION EYE v17.0'
                     cv2.imshow(window_name, screenshot)
                     cv2.setWindowProperty(window_name, cv2.WND_PROP_TOPMOST, 1)
                     cv2.waitKey(1)
