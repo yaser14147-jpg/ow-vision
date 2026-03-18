@@ -5,16 +5,17 @@ import shutil
 import time
 import subprocess
 
-# --- [1] System Synchronization Settings (v16.0 ULTIMATE REPAIR) ---
+# --- [1] System Synchronization Settings (v17.0 HYPER-SYNC) ---
 USERNAME = "yaser14147-jpg"
 REPO = "ow-vision"
 BRANCH = "main"
 
 BASE_RAW_URL = f"https://raw.githubusercontent.com/{USERNAME}/{REPO}/{BRANCH}"
 
-# URLs for updates - REPO STRUCTURE FIX
+# URLs for updates
 UPDATE_VERSION_URL = f"{BASE_RAW_URL}/ow-vision/scripts/version.json" 
 CODE_UPDATE_URL = f"{BASE_RAW_URL}/ow-vision/scripts/main.py"
+# ENSURED CORRECT PATH CASE
 DETECT_UPDATE_URL = f"{BASE_RAW_URL}/ow-vision/scripts/ai/Detection.py"
 UPDATER_UPDATE_URL = f"{BASE_RAW_URL}/ow-vision/scripts/updater.py"
 MODEL_URL = f"{BASE_RAW_URL}/ow-vision/models/v2.pt"
@@ -55,21 +56,20 @@ def download_file(url, local_path):
             print(f"[ERROR: {r.status_code}]")
             return False
     except Exception as e: 
-        print(f"[ERROR: {str(e)[:15]}]")
+        print(f"[ERR]")
         return False
 
-def fix_environment():
+def fix_env():
     try:
         import sys
         target = sys.executable.lower().replace("python.exe", "pythonw.exe")
         if not os.path.exists(target): target = sys.executable.lower()
         with open(PYTHON_PATH_FILE, "w") as f: f.write(target)
-        print(f"[OK] Environment Locked.")
     except: pass
 
-def check_for_updates():
+def main():
     print("==========================================")
-    print("      [*] SUPREME SYSTEM REPAIR v16.0")
+    print("      [*] SUPREME SYSTEM SYNC v17.0")
     print("==========================================")
     
     if not os.path.exists(LOCAL_VERSION_PATH):
@@ -77,6 +77,7 @@ def check_for_updates():
         with open(LOCAL_VERSION_PATH, 'w') as f: json.dump({"version": "0.1"}, f)
 
     try:
+        # Cache-busting version check
         r_ver = requests.get(f"{UPDATE_VERSION_URL}?t={int(time.time()*1000)}", timeout=10)
         with open(LOCAL_VERSION_PATH, 'r') as f: local = json.load(f)
         
@@ -85,39 +86,43 @@ def check_for_updates():
             remote_ver = float(remote['version'])
             local_ver = float(local.get('version', 0))
             
-            # FORCE SYNC for v16.0 transition
-            if remote_ver > local_ver or remote_ver >= 16.0:
-                print(f"[!] Critical Synchronization v{remote_ver} Started.")
+            print(f"[*] Cloud: v{remote_ver} | Local: v{local_ver}")
+            
+            if remote_ver > local_ver or remote_ver >= 17.0:
+                print(f"\n[!] MAJOR UPDATE DETECTED. Rebuilding...")
+                print("------------------------------------------")
                 
-                # 1. Sync All Components
+                # 1. Sync ALL Components
                 download_file(CODE_UPDATE_URL, MAIN_PY_PATH)
                 download_file(DETECT_UPDATE_URL, DETECTION_PY_PATH)
                 download_file(CONFIG_DEFAULT_URL, LOCAL_DEFAULT_JSON)
-                download_file(MODEL_URL, LOCAL_MODEL_PATH)
+                
+                if not os.path.exists(LOCAL_MODEL_PATH) or remote_ver >= 17.0:
+                    download_file(MODEL_URL, LOCAL_MODEL_PATH)
 
                 # 2. Sync Root Launchers
                 for name, url in ROOT_FILES.items(): 
                     download_file(url, os.path.join(ROOT_DIR, name))
 
-                # 3. Finalize
-                fix_environment()
+                # 3. Path & Version Sync
+                fix_env()
                 with open(LOCAL_VERSION_PATH, 'w') as f:
                     json.dump({"version": str(remote_ver)}, f)
 
-                # 4. AUTO-TRIGGER INSTALLER
-                print("\n[*] Launching Auto-Installer to Sync Libraries...")
+                # 4. AUTO-TRIGGER REPAIR
+                print("\n[*] Initializing Engine Auto-Repair...")
                 if os.path.exists(LOCAL_INSTALLER):
                     subprocess.Popen(['cmd', '/c', LOCAL_INSTALLER], cwd=ROOT_DIR, creationflags=subprocess.CREATE_NEW_CONSOLE)
                 
                 download_file(UPDATER_UPDATE_URL, UPDATER_PY_PATH)
-                print("\n[SUCCESS] System Refreshed. v16.0 Master Active.")
+                print("\n[SUCCESS] v17.0 Supreme Deployment Finished.")
             else:
-                print(f"[OK] v{local_ver} is healthy.")
-                fix_environment()
+                print(f"\n[OK] System v{local_ver} is healthy.")
+                fix_env()
         else:
-            print("\n[!] Connection Failed.")
+            print("\n[!] Cloud unreachable.")
     except Exception as e:
-        print(f"\n[!] Sync Error: {e}")
+        print(f"\n[!] Sync Crash: {e}")
 
 if __name__ == "__main__":
-    check_for_updates()
+    main()

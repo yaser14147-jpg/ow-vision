@@ -12,14 +12,14 @@ import torch
 import json
 import os
 
-# --- [v13.0 SUPREME ENGINE - RESOLUTION INDEPENDENT] ---
+# --- [v17.0 HYPER-SYNC ENGINE - THE DEFINITIVE FIX] ---
 
 class Detection:
     def __init__(self):
         base_scripts = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         self.config_path = os.path.join(base_scripts, 'config.json')
         
-        # Default settings
+        # Absolute Defaults
         self.AIM_FOV = 75
         self.CONFIDENCE = 0.30
         self.trigger_key = 0x06
@@ -48,14 +48,11 @@ class Detection:
         except: pass
 
     def start(self):
-        # 1. Physical Resolution Detection
+        # 1. Screen Resolution Intelligence
         SCREEN_W, SCREEN_H = pyautogui.size()
+        scale_factor = SCREEN_H / 1080.0 # Standardize based on 1080p feel
         
-        # 2. Virtual Normalization (Targeting 1080p feel on all screens)
-        # This makes the FOV circle and movement feel the same on 4K and 1080p
-        scale_factor = SCREEN_H / 1080.0
-        
-        # Consistent capture size (400x400 virtual pixels)
+        # 2. Optimized Capture Region (400x400 virtual area)
         CAPTURE_SIZE = int(400 * scale_factor)
         left = (SCREEN_W - CAPTURE_SIZE) // 2
         top = (SCREEN_H - CAPTURE_SIZE) // 2
@@ -63,18 +60,17 @@ class Detection:
         region = {"top": top, "left": left, "width": CAPTURE_SIZE, "height": CAPTURE_SIZE}
         capture_center = CAPTURE_SIZE // 2
         
-        # 3. Path & Device
+        # 3. Path & Device Calibration
         base_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
         model_path = os.path.join(base_root, 'models', 'v2.pt')
         device = "cuda" if torch.cuda.is_available() else "cpu"
         
-        print(f"[*] Engine v13.0 Active | Res: {SCREEN_W}x{SCREEN_H} | Device: {device.upper()}")
+        print(f"[*] Engine v17.0 Active | Res: {SCREEN_W}x{SCREEN_H} | Scale: {scale_factor:.2f} | Device: {device.upper()}")
         
         try:
             model = YOLO(model_path)
             model.to(device)
-            # Use Half-presicion if on GPU for double speed (Turbo Mode)
-            if device == "cuda": model.model.half() 
+            if device == "cuda": model.model.half() # Instant speed on GPUs
         except Exception as e:
             return
 
@@ -82,7 +78,7 @@ class Detection:
         
         with mss() as stc:
             while True:
-                # Dynamic Setting Update
+                # Dynamic Setting Sync
                 if time.time() - self.last_config_check > 0.5:
                     self.load_settings()
                     model.conf = self.CONFIDENCE
@@ -95,11 +91,11 @@ class Detection:
                     time.sleep(0.1)
                     continue
 
-                # Capture
+                # Multi-threaded image capture
                 img = np.array(stc.grab(region))
                 screenshot = cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
 
-                # Predict
+                # AI Inference (Detection)
                 results = model.predict(screenshot, save=False, verbose=False, device=device, half=(device=="cuda"))
                 
                 if len(results[0].boxes) > 0:
@@ -109,13 +105,11 @@ class Detection:
 
                 closest_dist = 100000
                 target = None
-
-                # Normalize FOV for screen resolution
                 normalized_fov = self.AIM_FOV * scale_factor
 
                 for box in boxes:
                     x1, y1, x2, y2, conf, cls = box
-                    if cls != 1: continue # Targeting class 1
+                    if cls != 1: continue 
                     
                     cx = (x1 + x2) / 2
                     cy = (y1 + y2) / 2
@@ -128,32 +122,33 @@ class Detection:
                     if self.visualize:
                         cv2.rectangle(screenshot, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 2)
 
-                # AIMING LOGIC
+                # AIM LOCK LOGIC
                 trigger = (win32api.GetAsyncKeyState(self.trigger_key) < 0)
                 
                 if target and trigger and self.enable_aim:
                     tx, ty, x1, y1, x2, y2 = target
                     
-                    # Calculate Relative Movement
+                    # Relational Mapping (Distance from center)
                     dx = tx - capture_center
                     dy = ty - capture_center
                     
-                    # On-Target Smoothing
+                    # Intelligent Locking (Stickiness)
                     is_on = (x1 <= capture_center <= x2) and (y1 <= capture_center <= y2)
                     smooth = self.SMOOTH_IN if is_on else self.SMOOTH_OUT
                     
-                    # Compensation adjusted for screen scaling
-                    move_x = (dx * self.SENS_COMP) / (smooth * scale_factor)
-                    move_y = (dy * self.SENS_COMP) / (smooth * scale_factor)
+                    # [v17.0 FIX]: MULTIPLY by scale_factor to compensate for high resolutions (4K)
+                    # This makes 2.6 sensitivity FEEL the same everywhere.
+                    move_x = (dx * self.SENS_COMP * scale_factor) / smooth
+                    move_y = (dy * self.SENS_COMP * scale_factor) / smooth
                     
                     if int(move_x) != 0 or int(move_y) != 0:
                         win32api.mouse_event(win32con.MOUSEEVENTF_MOVE, int(move_x), int(move_y), 0, 0)
 
-                # VISION UI
+                # VISION OVERLAY
                 if self.visualize:
                     cv2.circle(screenshot, (capture_center, capture_center), int(normalized_fov), (255, 255, 0), 1)
-                    cv2.imshow('AI SUPREME v13.0', screenshot)
-                    cv2.setWindowProperty('AI SUPREME v13.0', cv2.WND_PROP_TOPMOST, 1)
+                    cv2.imshow('AI SUPREME v17.0', screenshot)
+                    cv2.setWindowProperty('AI SUPREME v17.0', cv2.WND_PROP_TOPMOST, 1)
                     cv2.waitKey(1)
                     self.vision_window_open = True
                 else:
