@@ -1,6 +1,6 @@
 @echo off
 setlocal enabledelayedexpansion
-title AI VISION MASTER INSTALLER v6.2
+title AI VISION MASTER INSTALLER v6.3
 
 :: --- [1] FORCE ADMINISTRATOR PRIVILEGES (BEST METHOD) ---
 >nul 2>&1 "%SYSTEMROOT%\system32\cacls.exe" "%SYSTEMROOT%\system32\config\system"
@@ -95,7 +95,7 @@ curl -L -s "!BASE_URL!/START_AIMBOT.vbs" -o "%~dp0START_AIMBOT.vbs"
 echo.
 echo ==========================================
 echo       [SUCCESS] SYSTEM IS FULLY READY!
-echo             VERSION: v6.2 MASTER
+echo             VERSION: v6.3 MASTER
 echo   ENVIRONMENT SAVED AND LAUNCHERS READY.
 echo ==========================================
 pause
