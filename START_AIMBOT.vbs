@@ -5,66 +5,51 @@ Set fso = CreateObject("Scripting.FileSystemObject")
 StrPath = fso.GetParentFolderName(WScript.ScriptFullName)
 MainPyPath = fso.BuildPath(StrPath, "ow-vision\scripts\main.py")
 PathFile = fso.BuildPath(StrPath, "python_path.txt")
+InstallerPath = fso.BuildPath(StrPath, "INSTALL_LIBRARIES.bat")
 
-' --- [2] FIND ANY WORKING PYTHON (v10.0 ULTIMATE) ---
-Sub FindPythonRunner()
+' --- [2] FIND PYTHON (v11.5 SMART REPAIR) ---
+Sub FindAndLaunch()
     On Error Resume Next
     FoundPy = ""
     
-    ' Priority 1: Check if environment locked a path
+    ' Priority 1: Check Locked Path
     If fso.FileExists(PathFile) Then
         Set objFile = fso.OpenTextFile(PathFile, 1)
-        SavedPath = Trim(objFile.ReadLine)
+        SavedPath = Replace(Trim(objFile.ReadLine), """", "")
         objFile.Close
-        SavedPath = Replace(SavedPath, """", "")
-        If fso.FileExists(SavedPath) Then FoundPy = SavedPath : Exit Sub
+        If fso.FileExists(SavedPath) Then FoundPy = SavedPath
     End If
 
-    ' Priority 2: Try 'pythonw.exe' in PATH (Best Choice)
-    Err.Clear
-    WshShell.Run "pythonw.exe --version", 0, True
-    If Err.Number = 0 Then FoundPy = "pythonw.exe" : Exit Sub
-
-    ' Priority 3: Fallback to 'python.exe' in PATH (If pythonw is missing)
-    Err.Clear
-    WshShell.Run "python.exe --version", 0, True
-    If Err.Number = 0 Then FoundPy = "python.exe" : Exit Sub
-
-    ' Priority 4: Common Brute Force Scan
-    Common = Array("C:\Program Files\Python312", "C:\Program Files\Python313", "C:\Program Files\Python314", _
-                   WshShell.ExpandEnvironmentStrings("%LocalAppData%\Programs\Python"), _
-                   WshShell.ExpandEnvironmentStrings("%LocalAppData%\Python"))
-    
-    For Each P In Common
-        Set Folder = fso.GetFolder(P)
-        If Err.Number = 0 Then
-            ' Check Root and Subfolders
-            CheckFile P & "\pythonw.exe"
-            If FoundPy <> "" Then Exit Sub
-            CheckFile P & "\python.exe"
-            If FoundPy <> "" Then Exit Sub
-            
-            For Each SubF In Folder.SubFolders
-                CheckFile SubF.Path & "\pythonw.exe"
-                If FoundPy <> "" Then Exit Sub
-                CheckFile SubF.Path & "\python.exe"
-                If FoundPy <> "" Then Exit Sub
-            Next
-        End If
+    ' Priority 2: Try standard command
+    If FoundPy = "" Then
         Err.Clear
-    Next
+        WshShell.Run "pythonw.exe --version", 0, True
+        If Err.Number = 0 Then FoundPy = "pythonw.exe"
+    End If
+
+    ' Priority 3: Try fallback
+    If FoundPy = "" Then
+        Err.Clear
+        WshShell.Run "python.exe --version", 0, True
+        If Err.Number = 0 Then FoundPy = "python.exe"
+    End If
+
+    ' --- [3] LAUNCH OR REPAIR ---
+    If FoundPy <> "" Then
+        WshShell.Run """" & FoundPy & """ """ & MainPyPath & """", 0, False
+    Else
+        Ans = MsgBox("Fatal: Python not detected!" & vbCrLf & _
+                     "Would you like to run the Auto-Repair Tool (Installer) now?", 36, "Environment Error")
+        If Ans = 6 Then ' If Yes
+            WshShell.Run "cmd /c """ & InstallerPath & """", 1, False
+        End If
+    End If
 End Sub
 
-Sub CheckFile(Path)
-    If fso.FileExists(Path) Then FoundPy = Path
-End Sub
-
-' --- [3] LAUNCH ---
-FindPythonRunner
-
-If FoundPy <> "" Then
-    ' Run main.py hidden if using pythonw, or visible if fallback to python
-    WshShell.Run """" & FoundPy & """ """ & MainPyPath & """", 0, False
-Else
-    MsgBox "Fatal: Python Not Found!" & vbCrLf & "Please run INSTALL_LIBRARIES.bat as Admin.", 16, "Environment Error"
+' --- START ---
+If Not fso.FileExists(MainPyPath) Then
+    MsgBox "Error: main.py not found!", 16, "File Error"
+    WScript.Quit
 End If
+
+FindAndLaunch

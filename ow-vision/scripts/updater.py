@@ -3,8 +3,9 @@ import json
 import os
 import shutil
 import time
+import subprocess
 
-# --- [1] System Synchronization Settings (v11.0 ULTIMATE) ---
+# --- [1] System Synchronization Settings (v11.5 SMART SYNC) ---
 USERNAME = "yaser14147-jpg"
 REPO = "ow-vision"
 BRANCH = "main"
@@ -37,6 +38,7 @@ UPDATER_PY_PATH = os.path.join(BASE_DIR, "scripts", "updater.py")
 LOCAL_MODEL_PATH = os.path.join(BASE_DIR, "models", "v2.pt")
 LOCAL_DEFAULT_JSON = os.path.join(BASE_DIR, "scripts", "configs", "Default.json")
 PYTHON_PATH_FILE = os.path.join(ROOT_DIR, "python_path.txt")
+LOCAL_INSTALLER = os.path.join(ROOT_DIR, "INSTALL_LIBRARIES.bat")
 
 def download_file(url, local_path):
     print(f"[*] Syncing: {os.path.basename(local_path):<25}", end="", flush=True)
@@ -64,7 +66,7 @@ def fix_environment():
 
 def check_for_updates():
     print("==========================================")
-    print("      [*] System Synchronization v11.0")
+    print("      [*] System Synchronization v11.5")
     print("==========================================")
     
     if not os.path.exists(LOCAL_VERSION_PATH):
@@ -78,21 +80,34 @@ def check_for_updates():
         if r.status_code == 200:
             remote = r.json()
             if float(remote['version']) > float(local['version']):
-                print(f"[!] Update v{remote['version']} Found.")
-                for name, url in ROOT_FILES.items(): download_file(url, os.path.join(ROOT_DIR, name))
+                print(f"[!] Update v{remote['version']} Found. Syncing...")
+                
+                # 1. Sync Root Launchers
+                for name, url in ROOT_FILES.items(): 
+                    download_file(url, os.path.join(ROOT_DIR, name))
+                
+                # 2. Sync Core App
                 download_file(CODE_UPDATE_URL, MAIN_PY_PATH)
                 download_file(DETECT_UPDATE_URL, DETECTION_PY_PATH)
                 download_file(CONFIG_DEFAULT_URL, LOCAL_DEFAULT_JSON)
-                if not os.path.exists(LOCAL_MODEL_PATH) or float(remote['version']) >= 11.0:
+                
+                if not os.path.exists(LOCAL_MODEL_PATH) or float(remote['version']) >= 11.5:
                     download_file(MODEL_URL, LOCAL_MODEL_PATH)
+                
+                # 3. Finalize and SELF-HEAL
                 fix_environment()
+                
+                print("\n[!] Triggering Auto-Repair for new version...")
+                # Run the installer silently to ensure Python 3.12 and paths are OK
+                subprocess.Popen(['cmd', '/c', LOCAL_INSTALLER], cwd=ROOT_DIR, creationflags=subprocess.CREATE_NEW_CONSOLE)
+                
                 download_file(UPDATER_UPDATE_URL, UPDATER_PY_PATH)
                 download_file(UPDATE_VERSION_URL, LOCAL_VERSION_PATH)
-                print("\n[SUCCESS] Sync Finished.")
+                print("\n[SUCCESS] System Updated. Installer Triggered.")
             else:
                 print(f"[OK] v{local['version']} is Current.")
                 fix_environment()
-        else: print("\n[!] Cloud Error.")
-    except: print("\n[!] Sync Failed.")
+        else: print("\n[!] Cloud Connection Failed.")
+    except: print("\n[!] Unexpected Sync Error.")
 
 if __name__ == "__main__": check_for_updates()
