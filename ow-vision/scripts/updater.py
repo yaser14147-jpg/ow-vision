@@ -5,7 +5,7 @@ import shutil
 import time
 import subprocess
 
-# --- [1] System Synchronization Settings (v12.5 ULTIMATE FORCED SYNC) ---
+# --- [1] System Synchronization Settings (v14.0 SUPREME MASTER) ---
 USERNAME = "yaser14147-jpg"
 REPO = "ow-vision"
 BRANCH = "main"
@@ -20,7 +20,7 @@ UPDATER_UPDATE_URL = f"{BASE_RAW_URL}/ow-vision/scripts/updater.py"
 MODEL_URL = f"{BASE_RAW_URL}/ow-vision/models/v2.pt"
 CONFIG_DEFAULT_URL = f"{BASE_RAW_URL}/ow-vision/scripts/configs/Default.json"
 
-# Launcher Files (Root)
+# Launcher Files (Master List - REDUCED to prevent conflicts)
 ROOT_FILES = {
     "INSTALL_LIBRARIES.bat": f"{BASE_RAW_URL}/INSTALL_LIBRARIES.bat",
     "UPDATE_PROGRAM.bat": f"{BASE_RAW_URL}/UPDATE_PROGRAM.bat",
@@ -44,88 +44,78 @@ def download_file(url, local_path):
     print(f"[*] Syncing: {os.path.basename(local_path):<25}", end="", flush=True)
     try:
         os.makedirs(os.path.dirname(local_path), exist_ok=True)
-        # FORCE CACHE BUSTING FOR ALL FILES
-        r = requests.get(f"{url}?t={int(time.time())}", timeout=30) 
+        # Aggressive Cache Busting
+        r = requests.get(f"{url}?t={int(time.time() * 1000)}", timeout=30) 
         if r.status_code == 200:
             with open(local_path, 'wb') as f: f.write(r.content)
             print("[OK]")
             return True
         print(f"[FAILED: {r.status_code}]")
     except Exception as e: 
-        print(f"[ERROR: {str(e)[:20]}]")
+        print(f"[ERROR]")
     return False
 
 def fix_environment():
-    """Aggressively locks the best available python path."""
     try:
         import sys
-        base = sys.executable.lower()
-        pyw = base.replace("python.exe", "pythonw.exe")
-        target = pyw if os.path.exists(pyw) else base
+        target = sys.executable.lower().replace("python.exe", "pythonw.exe")
+        if not os.path.exists(target): target = sys.executable.lower()
+        with open(PYTHON_PATH_FILE, "h" if os.name == 'nt' else "w") as f: # Use 'w' correctly
+           pass
         with open(PYTHON_PATH_FILE, "w") as f: f.write(target)
         print(f"[OK] Environment Locked.")
     except: pass
 
 def check_for_updates():
     print("==========================================")
-    print("      [*] System Synchronization v12.5")
+    print("      [*] SUPREME SYSTEM SYNC v14.0")
     print("==========================================")
     
-    # 1. Ensure local version file exists
     if not os.path.exists(LOCAL_VERSION_PATH):
         os.makedirs(os.path.dirname(LOCAL_VERSION_PATH), exist_ok=True)
         with open(LOCAL_VERSION_PATH, 'w') as f: json.dump({"version": "0.1"}, f)
 
     try:
-        # 2. Get Remote Version
         r_ver = requests.get(f"{UPDATE_VERSION_URL}?t={int(time.time())}", timeout=10)
         with open(LOCAL_VERSION_PATH, 'r') as f: local = json.load(f)
         
         if r_ver.status_code == 200:
             remote = r_ver.json()
-            remote_ver = float(remote['version'])
-            local_ver = float(local.get('version', 0.1))
-            
-            print(f"[*] Cloud: v{remote_ver} | Local: v{local_ver}")
-            
-            # IF VERSION MISMATCH OR FORCE (>= 12.0)
-            if remote_ver > local_ver or remote_ver >= 12.5:
-                print(f"[!] Update v{remote_ver} Triggered. Full Sync Started.")
-                print("------------------------------------------")
-
-                # SYNC EVERY CORE COMPONENT
+            # FORCE SYNC for v14.0 transition to ensure clean state
+            if float(remote['version']) > float(local.get('version', 0)) or float(remote['version']) >= 14.0:
+                print(f"[!] Critical Update v{remote['version']} Triggered.")
+                
+                # 1. Sync EVERYTHING once to ensure no leftovers from old installers
                 download_file(CODE_UPDATE_URL, MAIN_PY_PATH)
-                download_file(DETECT_UPDATE_URL, DETECTION_PY_PATH)
-                download_file(UPDATER_UPDATE_URL, UPDATER_PY_PATH)
+                download_file(DETECTION_PY_PATH, DETECTION_PY_PATH)
                 download_file(CONFIG_DEFAULT_URL, LOCAL_DEFAULT_JSON)
                 
-                # Model update (Heavy file)
-                if not os.path.exists(LOCAL_MODEL_PATH) or remote_ver >= 12.0:
+                if not os.path.exists(LOCAL_MODEL_PATH) or float(remote['version']) >= 14.0:
                     download_file(MODEL_URL, LOCAL_MODEL_PATH)
 
-                # Sync Batch/VBS Launchers
+                # 2. Update Launcher Scripts (This is now the SOLE place for this)
                 for name, url in ROOT_FILES.items(): 
                     download_file(url, os.path.join(ROOT_DIR, name))
 
-                # Repair Paths
+                # 3. Finalize
                 fix_environment()
                 
-                # Save Version
                 with open(LOCAL_VERSION_PATH, 'w') as f:
-                    json.dump({"version": str(remote_ver)}, f)
+                    json.dump({"version": str(remote['version'])}, f)
 
-                print("\n[SUCCESS] Force Sync Finished.")
-                
-                # TRIGGER INSTALLER TO RE-SYNC LIBRARIES IF NEEDED
-                print("[*] Launching Repair Engine...")
+                # 4. Trigger Installer AFTER everything is synced (to install libs only)
+                print("\n[*] Initializing Clean AI Engine...")
                 subprocess.Popen(['cmd', '/c', LOCAL_INSTALLER], cwd=ROOT_DIR, creationflags=subprocess.CREATE_NEW_CONSOLE)
+                
+                download_file(UPDATER_UPDATE_URL, UPDATER_PY_PATH)
+                print("\n[SUCCESS] System Refreshed. v14.0 Master Active.")
             else:
-                print(f"[OK] System v{local_ver} is healthy.")
+                print(f"[OK] v{local['version']} is healthy.")
                 fix_environment()
         else:
-            print(f"\n[!] Server unreachable.")
+            print("\n[!] Connection Failed.")
     except Exception as e:
-        print(f"\n[!] Sync Crash: {e}")
+        print(f"\n[!] Sync Error: {e}")
 
 if __name__ == "__main__":
     check_for_updates()
