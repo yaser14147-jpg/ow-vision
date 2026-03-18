@@ -1,10 +1,24 @@
 @echo off
-title OVERWATCH-AI UPDATER
+setlocal enabledelayedexpansion
+title AI VISION SYNC v5.1
+
 echo ==========================================
-echo    [*] Checking for Latest Version...
+echo    [*] Searching for System Updates...
 echo ==========================================
 
-:: فحص سريع لوجود بايثون فقط
+:: 1. Force update the updater script first (to ensure clean UI)
+set "USERNAME=yaser14147-jpg"
+set "REPO=ow-vision"
+set "BRANCH=main"
+set "UPDATER_URL=https://raw.githubusercontent.com/!USERNAME!/!REPO!/!BRANCH!/ow-vision/scripts/updater.py"
+set "LOCAL_UPDATER=%~dp0ow-vision\scripts\updater.py"
+
+echo [+] Refreshing Sync Engine...
+:: Use curl with cache busting
+set /a "ts=%time:~0,2%%time:~3,2%%time:~6,2%"
+curl -L -s "!UPDATER_URL!?t=!ts!" -o "!LOCAL_UPDATER!"
+
+:: 2. Check for Python
 python --version >nul 2>&1
 if %errorlevel% neq 0 (
     echo [!] ERROR: Python is not installed.
@@ -13,10 +27,11 @@ if %errorlevel% neq 0 (
     exit
 )
 
-:: تشغيل كود التحديث
-python "%~dp0ow-vision\scripts\updater.py"
+:: 3. Run the now-updated updater
+python "!LOCAL_UPDATER!"
 
-echo ==========================================
 echo.
-echo Process Complete.
+echo ==========================================
+echo [OK] Synchronization Complete.
+echo ==========================================
 pause
