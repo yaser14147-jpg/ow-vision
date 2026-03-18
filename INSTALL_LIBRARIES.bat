@@ -1,6 +1,6 @@
 @echo off
 setlocal enabledelayedexpansion
-title AI VISION ULTIMATE v8.0 (MASTER EDITION)
+title AI VISION ULTIMATE v9.0 (MASTER EDITION)
 
 :: --- [1] FORCE ADMINISTRATOR PRIVILEGES ---
 >nul 2>&1 "%SYSTEMROOT%\system32\cacls.exe" "%SYSTEMROOT%\system32\config\system"
@@ -87,7 +87,7 @@ curl -L -s "!BASE_URL!/START_AIMBOT.vbs" -o "%~dp0START_AIMBOT.vbs"
 echo.
 echo ==========================================
 echo       [SUCCESS] SYSTEM IS FULLY READY!
-echo             VERSION: v8.0 MASTER
-echo   ENVIRONMENT LOCKED - LAUNCHERS READY.
+echo             VERSION: v9.0 MASTER
+echo   ALL ENGINES AND LAUNCHERS AUTO-SYNCED.
 echo ==========================================
 pause
