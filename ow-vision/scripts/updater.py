@@ -5,7 +5,7 @@ import shutil
 import time
 import subprocess
 
-# --- [v3.6] RESCUE SYSTEM SYNC ---
+# --- [v3.7 SUPREME REPAIR - THE FINAL SYNC] ---
 USERNAME = "yaser14147-jpg"
 REPO = "ow-vision"
 BRANCH = "main"
@@ -18,7 +18,6 @@ CODE_UPDATE_URL = f"{BASE_RAW_URL}/ow-vision/scripts/main.py"
 DETECT_UPDATE_URL = f"{BASE_RAW_URL}/ow-vision/scripts/ai/Detection.py"
 UPDATER_UPDATE_URL = f"{BASE_RAW_URL}/ow-vision/scripts/updater.py"
 MODEL_URL = f"{BASE_RAW_URL}/ow-vision/models/v2.pt"
-# FORCE SYNC EVERYTHING FOR v3.6
 CONFIG_DEFAULT_URL = f"{BASE_RAW_URL}/ow-vision/scripts/configs/Default.json"
 
 ROOT_FILES = {
@@ -52,9 +51,17 @@ def download_file(url, local_path):
     except: print("[ERR]")
     return False
 
+def fix_env():
+    try:
+        import sys
+        target = sys.executable.lower().replace("python.exe", "pythonw.exe")
+        if not os.path.exists(target): target = sys.executable.lower()
+        with open(PYTHON_PATH_FILE, "w") as f: f.write(target)
+    except: pass
+
 def check_for_updates():
     print("==========================================")
-    print("      [*] SUPREME SYSTEM SYNC v3.6")
+    print("      [*] SUPREME SYSTEM SYNC v3.7")
     print("==========================================")
     
     if not os.path.exists(LOCAL_VERSION_PATH):
@@ -67,32 +74,42 @@ def check_for_updates():
         
         if r_ver.status_code == 200:
             remote = r_ver.json()
-            # FORCE v3.6 Transition
-            if float(remote['version']) > float(local.get('version', 0)) or float(remote['version']) >= 3.6:
-                print(f"\n[!] MAJOR RESCUE v3.6 TRIGGERED.")
+            remote_ver = float(remote.get('version', 0))
+            local_ver = float(local.get('version', 0))
+            
+            print(f"[*] Cloud: v{remote_ver} | Local: v{local_ver}")
+            
+            if remote_ver > local_ver or remote_ver >= 3.7:
+                print(f"\n[!] MAJOR UPDATE v3.7 DETECTED. Rebuilding Core...")
                 
+                # 1. Root Files First
                 for name, url in ROOT_FILES.items(): 
                     download_file(url, os.path.join(ROOT_DIR, name))
 
+                # 2. Main Content
                 download_file(CODE_UPDATE_URL, MAIN_PY_PATH)
                 download_file(DETECT_UPDATE_URL, DETECTION_PY_PATH)
                 download_file(CONFIG_DEFAULT_URL, LOCAL_DEFAULT_JSON)
                 download_file(MODEL_URL, LOCAL_MODEL_PATH)
 
+                fix_env()
                 with open(LOCAL_VERSION_PATH, 'w') as f:
-                    json.dump({"version": str(remote['version'])}, f)
+                    json.dump({"version": str(remote_ver)}, f)
 
-                print("\n[*] Initializing Power Sync v3.6...")
+                print("\n[*] Initializing Power Engine v3.7...")
                 if os.path.exists(LOCAL_INSTALLER):
                     subprocess.Popen(['cmd', '/c', LOCAL_INSTALLER], cwd=ROOT_DIR, creationflags=subprocess.CREATE_NEW_CONSOLE)
                 
                 download_file(UPDATER_UPDATE_URL, UPDATER_PY_PATH)
-                print("\n[SUCCESS] Sync Complete.")
+                print("\n[SUCCESS] System Refreshed.")
             else:
-                print(f"[OK] System v{local['version']} is Ready.")
+                print(f"[OK] v{local_ver} is healthy.")
+                fix_env()
         else:
-            print("\n[!] Connection Error.")
+            print("\n[!] Cloud Connection Error.")
     except Exception as e:
         print(f"\n[!] Sync Crash: {e}")
 
-if __name__ == "__main__": main()
+if __name__ == "__main__": 
+    # [!] FIX: Calling the correct function name to resolve NameError: main
+    check_for_updates()
