@@ -6,71 +6,65 @@ StrPath = fso.GetParentFolderName(WScript.ScriptFullName)
 MainPyPath = fso.BuildPath(StrPath, "ow-vision\scripts\main.py")
 PathFile = fso.BuildPath(StrPath, "python_path.txt")
 
-' --- [2] FIND PYTHONW.EXE (ULTIMATE DEEP SEARCH v8.0) ---
-Sub FindPythonW()
+' --- [2] FIND ANY WORKING PYTHON (v10.0 ULTIMATE) ---
+Sub FindPythonRunner()
     On Error Resume Next
     FoundPy = ""
     
-    ' Priority 1: Check if INSTALL_LIBRARIES saved a working path
+    ' Priority 1: Check if environment locked a path
     If fso.FileExists(PathFile) Then
         Set objFile = fso.OpenTextFile(PathFile, 1)
         SavedPath = Trim(objFile.ReadLine)
         objFile.Close
-        ' Remove any quotes if they accidentally got saved
         SavedPath = Replace(SavedPath, """", "")
-        If fso.FileExists(SavedPath) Then
-            FoundPy = SavedPath
-            Exit Sub
-        End If
+        If fso.FileExists(SavedPath) Then FoundPy = SavedPath : Exit Sub
     End If
 
-    ' Priority 2: Check if 'pythonw.exe' is in PATH (Universal)
+    ' Priority 2: Try 'pythonw.exe' in PATH (Best Choice)
     Err.Clear
     WshShell.Run "pythonw.exe --version", 0, True
-    If Err.Number = 0 Then FoundPy = "pythonw.exe": Exit Sub
+    If Err.Number = 0 Then FoundPy = "pythonw.exe" : Exit Sub
 
-    ' Priority 3: Check common manual locations (Recursive Discovery)
-    Dim CommonPaths
-    CommonPaths = Array("C:\Program Files\Python312", "C:\Program Files\Python313", "C:\Program Files\Python314", _
-                        WshShell.ExpandEnvironmentStrings("%LocalAppData%\Programs\Python"), _
-                        WshShell.ExpandEnvironmentStrings("%LocalAppData%\Python"), _
-                        "C:\Python312", "C:\Python311")
+    ' Priority 3: Fallback to 'python.exe' in PATH (If pythonw is missing)
+    Err.Clear
+    WshShell.Run "python.exe --version", 0, True
+    If Err.Number = 0 Then FoundPy = "python.exe" : Exit Sub
+
+    ' Priority 4: Common Brute Force Scan
+    Common = Array("C:\Program Files\Python312", "C:\Program Files\Python313", "C:\Program Files\Python314", _
+                   WshShell.ExpandEnvironmentStrings("%LocalAppData%\Programs\Python"), _
+                   WshShell.ExpandEnvironmentStrings("%LocalAppData%\Python"))
     
-    For Each RootPath In CommonPaths
-        If fso.FolderExists(RootPath) Then
-            ' Check main folder
-            If fso.FileExists(fso.BuildPath(RootPath, "pythonw.exe")) Then 
-                FoundPy = fso.BuildPath(RootPath, "pythonw.exe")
-                Exit Sub
-            End If
-            ' Scan subfolders
-            Set RootFolder = fso.GetFolder(RootPath)
-            For Each SubF In RootFolder.SubFolders
-                TestFile = fso.BuildPath(SubF.Path, "pythonw.exe")
-                If fso.FileExists(TestFile) Then
-                    FoundPy = TestFile
-                    Exit Sub
-                End If
+    For Each P In Common
+        Set Folder = fso.GetFolder(P)
+        If Err.Number = 0 Then
+            ' Check Root and Subfolders
+            CheckFile P & "\pythonw.exe"
+            If FoundPy <> "" Then Exit Sub
+            CheckFile P & "\python.exe"
+            If FoundPy <> "" Then Exit Sub
+            
+            For Each SubF In Folder.SubFolders
+                CheckFile SubF.Path & "\pythonw.exe"
+                If FoundPy <> "" Then Exit Sub
+                CheckFile SubF.Path & "\python.exe"
+                If FoundPy <> "" Then Exit Sub
             Next
         End If
+        Err.Clear
     Next
 End Sub
 
-' --- [3] RUN THE SCRIPT ---
-If Not fso.FileExists(MainPyPath) Then
-    MsgBox "Error: main.py not found at: " & MainPyPath & vbCrLf & _
-           "Please extract the zip file correctly.", 16, "File Error"
-    WScript.Quit
-End If
+Sub CheckFile(Path)
+    If fso.FileExists(Path) Then FoundPy = Path
+End Sub
 
-FindPythonW
+' --- [3] LAUNCH ---
+FindPythonRunner
 
 If FoundPy <> "" Then
-    ' Run main.py hidden 
-    ' Force use of FoundPy as the absolute runner
+    ' Run main.py hidden if using pythonw, or visible if fallback to python
     WshShell.Run """" & FoundPy & """ """ & MainPyPath & """", 0, False
 Else
-    MsgBox "Fatal Error: Could not find Python (pythonw.exe)!" & vbCrLf & _
-           "Your system seems to have a custom Python installation." & vbCrLf & _
-           "Please run INSTALL_LIBRARIES.bat as Administrator once to repair your environment.", 16, "Fatal Environment Error"
+    MsgBox "Fatal: Python Not Found!" & vbCrLf & "Please run INSTALL_LIBRARIES.bat as Admin.", 16, "Environment Error"
 End If
