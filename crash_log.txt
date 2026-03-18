@@ -1,0 +1,1 @@
+'ClassicAHKUI' object has no attribute 'start_ai'

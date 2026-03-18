@@ -10,12 +10,11 @@ import win32api
 import win32con
 import threading
 
-# --- [v17.5 PRESET ENGINE - THE ULTIMATE UI] ---
+# --- [v18.0 MASTER UI - ULTIMATE HOTKEYS] ---
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CONFIG_DIR = os.path.join(BASE_DIR, "configs")
-if not os.path.exists(CONFIG_DIR):
-    os.makedirs(CONFIG_DIR)
+ACTIVE_CFG_PATH = os.path.join(BASE_DIR, "config.json")
 
 DEFAULT_CONFIG = {
     "aim_fov": 75,
@@ -28,55 +27,35 @@ DEFAULT_CONFIG = {
     "enable_aim": False
 }
 
-ACTIVE_CFG_PATH = os.path.join(BASE_DIR, "config.json")
-
 def save_active_config(cfg):
     try:
-        config_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "config.json")
-        with open(config_path, "w") as f:
-            json.dump(cfg, f, indent=4)
-            f.flush()
-            os.fsync(f.fileno())
-    except Exception as e: pass
+        with open(ACTIVE_CFG_PATH, "w") as f:
+            json.dump(cfg, f, indent=4); f.flush(); os.fsync(f.fileno())
+    except: pass
 
 def run_detection():
     sys.path.append(os.path.dirname(os.path.abspath(__file__)))
     try:
         from ai.Detection import Detection
-        app = Detection()
-        app.start()
+        app = Detection(); app.start()
     except: pass
 
 TRANSLATIONS = {
     "AR": {
         "title": "Config Settings",
-        "fields": [
-            ("FOV Size:", "(رقم أكبر = مساحة أوسع للشبك)"),
-            ("Aim Speed:", "(رقم أكبر = قوة تثبيت أسرع)"),
-            ("Smooth In:", "(رقم أكبر = نعومة وثبات بشري)"),
-            ("Smooth Out:", "(رقم أكبر = سحب مخفي من بعيد)"),
-            ("Confidence:", "(رقم أقل = رصد واستجابة أسرع)")
-        ],
+        "fields": [("FOV Size:", "(رقم أكبر = مساحة أوسع)"), ("Aim Speed:", "(رقم أكبر = قوة تثبيت)"), ("Smooth In:", "(رقم أكبر = نعومة وضبط)"), ("Smooth Out:", "(رقم أكبر = سحب مخفي)"), ("Confidence:", "(رقم أقل = رصد أسرع)")],
         "profile": "ملف الإعدادات الحالي:",
         "trigger": "زر تشغيل الإيمبوت:",
         "show_aim": "إظهار الإيم",
-        "hide_aim": "إخفاء الإيم",
-        "levels": "Levels S"
+        "hide_aim": "إخفاء الإيم"
     },
     "EN": {
         "title": "Config Settings",
-        "fields": [
-            ("FOV Size:", "(Higher = wider scan area)"),
-            ("Aim Speed:", "(Higher = stronger aim lock)"),
-            ("Smooth In:", "(Higher = smoother locked aim)"),
-            ("Smooth Out:", "(Higher = subtle stealth pull)"),
-            ("Confidence:", "(Lower = faster AI tracking)")
-        ],
+        "fields": [("FOV Size:", "(Higher = wider scan)"), ("Aim Speed:", "(Higher = stronger aim)"), ("Smooth In:", "(Higher = smoother aim)"), ("Smooth Out:", "(Higher = subtle pull)"), ("Confidence:", "(Lower = faster AI)")],
         "profile": "Current Config Profile:",
         "trigger": "Aimbot Trigger Key:",
         "show_aim": "Show Aim",
-        "hide_aim": "Hide Aim",
-        "levels": "Levels S"
+        "hide_aim": "Hide Aim"
     }
 }
 
@@ -84,137 +63,102 @@ class ClassicAHKUI:
     def __init__(self, root):
         self.root = root
         self.root.title("overwatch-ai")
-        self.root.geometry("420x580") # Increased width for presets
+        self.root.geometry("420x580")
         self.root.resizable(False, False)
-        
         self.root.wm_attributes("-toolwindow", True)
         self.root.wm_attributes("-topmost", True)
         
         self.visible = False
-        self.root.withdraw()
-        self.root.attributes("-alpha", 0.0) 
+        self.root.withdraw(); self.root.attributes("-alpha", 0.0) 
         
         self.stealth_active = True
-        self.f4_was_pressed = False
-        self.root.after(100, self.monitor_f4_safe)
+        self.keys_pressed = {} # Tracking all hotkeys
         
-        style = ttk.Style()
-        style.theme_use('vista')
+        # Start Master Listener
+        self.root.after(100, self.monitor_hotkeys)
+        
+        # Win32 Beep for feedback
+        try: win32api.Beep(1000, 200); win32api.Beep(1200, 200)
+        except: pass
+        
+        style = ttk.Style(); style.theme_use('vista')
         self.root.eval('tk::PlaceWindow . center')
         
-        self.current_lang = "AR"
-        self.visualize_active = False
-        self.aimbot_running = False
-        self.app_version = "17.5"
+        self.current_lang = "AR"; self.visualize_active = False; self.aimbot_running = False; self.app_version = "18.0"
         
-        main_frame = ttk.Frame(root, padding="15 15 15 15")
-        main_frame.pack(fill=tk.BOTH, expand=True)
+        main_frame = ttk.Frame(root, padding="15 15 15 15"); main_frame.pack(fill=tk.BOTH, expand=True)
+        top_frame = ttk.Frame(main_frame); top_frame.pack(fill=tk.X, pady=(0, 15))
+        self.lbl_top_title = ttk.Label(top_frame, text=TRANSLATIONS[self.current_lang]["title"], font=("Segoe UI", 10, "bold")); self.lbl_top_title.pack(side=tk.LEFT)
+        self.btn_lang = ttk.Button(top_frame, text="EN", width=3, command=self.toggle_lang); self.btn_lang.pack(side=tk.RIGHT)
         
-        # Header
-        top_frame = ttk.Frame(main_frame)
-        top_frame.pack(fill=tk.X, pady=(0, 15))
-        self.lbl_top_title = ttk.Label(top_frame, text=TRANSLATIONS[self.current_lang]["title"], font=("Segoe UI", 10, "bold"))
-        self.lbl_top_title.pack(side=tk.LEFT)
-        self.btn_lang = ttk.Button(top_frame, text="EN", width=3, command=self.toggle_lang)
-        self.btn_lang.pack(side=tk.RIGHT)
+        content_wrapper = ttk.Frame(main_frame); content_wrapper.pack(fill=tk.X)
+        inputs_frame = ttk.Frame(content_wrapper); inputs_frame.pack(side=tk.LEFT, fill=tk.X, expand=True)
         
-        # Main Content Wrapper
-        content_wrapper = ttk.Frame(main_frame)
-        content_wrapper.pack(fill=tk.X)
-        
-        # Inputs Column
-        inputs_frame = ttk.Frame(content_wrapper)
-        inputs_frame.pack(side=tk.LEFT, fill=tk.X, expand=True)
-        
-        self.entries = {}
-        self.label_names = []
-        self.label_descs = []
+        self.entries = {}; self.label_names = []; self.label_descs = []
         self.keys = ["aim_fov", "sens_comp", "smooth_in", "smooth_out", "confidence"]
         fields_text = TRANSLATIONS[self.current_lang]["fields"]
-        
-        row_idx = 0
         for i, key in enumerate(self.keys):
-            lbl_name = ttk.Label(inputs_frame, text=fields_text[i][0])
-            lbl_name.grid(row=row_idx, column=0, sticky="w", pady=(4, 0))
+            lbl_name = ttk.Label(inputs_frame, text=fields_text[i][0]); lbl_name.grid(row=i*2, column=0, sticky="w", pady=(4, 0))
             self.label_names.append(lbl_name)
-            ent = ttk.Entry(inputs_frame, width=12, justify="center")
-            ent.grid(row=row_idx, column=1, sticky="w", pady=(4, 0), padx=(5, 0))
+            ent = ttk.Entry(inputs_frame, width=12, justify="center"); ent.grid(row=i*2, column=1, sticky="w", pady=(4, 0), padx=(5, 0))
             self.entries[key] = ent
-            row_idx += 1
             lbl_desc = ttk.Label(inputs_frame, text=fields_text[i][1], font=("Segoe UI", 7), foreground="#777777")
-            lbl_desc.grid(row=row_idx, column=0, columnspan=2, sticky="w", pady=(0, 4))
-            row_idx += 1
+            lbl_desc.grid(row=i*2+1, column=0, columnspan=2, sticky="w", pady=(0, 4))
 
-        # Presets Column
-        presets_frame = ttk.Frame(content_wrapper)
-        presets_frame.pack(side=tk.RIGHT, fill=tk.Y, padx=(10, 0), pady=(5, 0))
-        
-        self.lbl_levels = ttk.Label(presets_frame, text="Levels", font=("Segoe UI", 9, "bold"))
-        self.lbl_levels.pack(pady=(0, 5))
-        
+        presets_frame = ttk.Frame(content_wrapper); presets_frame.pack(side=tk.RIGHT, fill=tk.Y, padx=(10, 0), pady=(5, 0))
+        ttk.Label(presets_frame, text="Levels", font=("Segoe UI", 9, "bold")).pack(pady=(0, 5))
         ttk.Button(presets_frame, text="Legit", width=10, command=lambda: self.apply_preset("Legit")).pack(pady=2)
         ttk.Button(presets_frame, text="Normal", width=10, command=lambda: self.apply_preset("Normal")).pack(pady=2)
         ttk.Button(presets_frame, text="High", width=10, command=lambda: self.apply_preset("High")).pack(pady=2)
             
-        # Action Buttons
-        btns_frame = ttk.Frame(main_frame)
-        btns_frame.pack(fill=tk.X, pady=(15, 0))
-        self.btn_aim_on = ttk.Button(btns_frame, text="Aimbot ON", command=self.start_ai)
-        self.btn_aim_on.grid(row=0, column=0, padx=3, pady=3, sticky="ew")
-        self.btn_aim_off = ttk.Button(btns_frame, text="Aimbot OFF", command=self.stop_ai, state=tk.DISABLED)
-        self.btn_aim_off.grid(row=0, column=1, padx=3, pady=3, sticky="ew")
-        self.btn_load = ttk.Button(btns_frame, text="Load Profile", command=self.load_config)
-        self.btn_load.grid(row=1, column=0, padx=3, pady=3, sticky="ew")
-        self.btn_save = ttk.Button(btns_frame, text="Save Profile", command=self.save_config)
-        self.btn_save.grid(row=1, column=1, padx=3, pady=3, sticky="ew")
-        btns_frame.columnconfigure(0, weight=1)
-        btns_frame.columnconfigure(1, weight=1)
+        btns_frame = ttk.Frame(main_frame); btns_frame.pack(fill=tk.X, pady=(15, 0))
+        self.btn_aim_on = ttk.Button(btns_frame, text="Aimbot ON", command=self.start_ai); self.btn_aim_on.grid(row=0, column=0, padx=3, pady=3, sticky="ew")
+        self.btn_aim_off = ttk.Button(btns_frame, text="Aimbot OFF", command=self.stop_ai, state=tk.DISABLED); self.btn_aim_off.grid(row=0, column=1, padx=3, pady=3, sticky="ew")
+        self.btn_load = ttk.Button(btns_frame, text="Load Profile", command=self.load_config); self.btn_load.grid(row=1, column=0, padx=3, pady=3, sticky="ew")
+        self.btn_save = ttk.Button(btns_frame, text="Save Profile", command=self.save_config); self.btn_save.grid(row=1, column=1, padx=3, pady=3, sticky="ew")
+        btns_frame.columnconfigure(0, weight=1); btns_frame.columnconfigure(1, weight=1)
         
-        # Profile Selector
-        self.lbl_profile = ttk.Label(main_frame, text=TRANSLATIONS[self.current_lang]["profile"])
-        self.lbl_profile.pack(anchor="w", pady=(10, 2))
-        cfg_frame = ttk.Frame(main_frame)
-        cfg_frame.pack(fill=tk.X)
-        self.btn_prev = ttk.Button(cfg_frame, text="<", width=3, command=self.prev_config)
-        self.btn_prev.pack(side=tk.LEFT)
+        self.lbl_profile = ttk.Label(main_frame, text=TRANSLATIONS[self.current_lang]["profile"]); self.lbl_profile.pack(anchor="w", pady=(10, 2))
+        cfg_frame = ttk.Frame(main_frame); cfg_frame.pack(fill=tk.X)
+        self.btn_prev = ttk.Button(cfg_frame, text="<", width=3, command=self.prev_config); self.btn_prev.pack(side=tk.LEFT)
         self.config_var = tk.StringVar(value="Default")
-        self.config_ent = ttk.Entry(cfg_frame, textvariable=self.config_var, justify="center")
-        self.config_ent.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=4)
-        self.btn_next = ttk.Button(cfg_frame, text=">", width=3, command=self.next_config)
-        self.btn_next.pack(side=tk.RIGHT)
+        self.config_ent = ttk.Entry(cfg_frame, textvariable=self.config_var, justify="center"); self.config_ent.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=4)
+        self.btn_next = ttk.Button(cfg_frame, text=">", width=3, command=self.next_config); self.btn_next.pack(side=tk.RIGHT)
 
-        # Trigger Key
-        self.lbl_trigger = ttk.Label(main_frame, text=TRANSLATIONS[self.current_lang]["trigger"])
-        self.lbl_trigger.pack(anchor="w", pady=(10, 2))
+        self.lbl_trigger = ttk.Label(main_frame, text=TRANSLATIONS[self.current_lang]["trigger"]); self.lbl_trigger.pack(anchor="w", pady=(10, 2))
         self.key_map = {"Left Mouse": 0x01, "Right Mouse": 0x02, "Middle Mouse": 0x04, "XButton 1": 0x05, "XButton 2": 0x06, "Shift": 0x10, "Ctrl": 0x11, "Alt": 0x12, "Space": 0x20}
         self.trigger_keys_list = list(self.key_map.keys())
         self.current_key_idx = 4
-        trigger_frame = ttk.Frame(main_frame)
-        trigger_frame.pack(fill=tk.X)
-        self.btn_key_prev = ttk.Button(trigger_frame, text="<", width=3, command=self.prev_key)
-        self.btn_key_prev.pack(side=tk.LEFT)
+        trigger_frame = ttk.Frame(main_frame); trigger_frame.pack(fill=tk.X)
+        self.btn_key_prev = ttk.Button(trigger_frame, text="<", width=3, command=self.prev_key); self.btn_key_prev.pack(side=tk.LEFT)
         self.trigger_var = tk.StringVar(value=self.trigger_keys_list[self.current_key_idx])
-        self.trigger_ent = ttk.Entry(trigger_frame, textvariable=self.trigger_var, justify="center", state="readonly")
-        self.trigger_ent.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=4)
-        self.btn_key_next = ttk.Button(trigger_frame, text=">", width=3, command=self.next_key)
-        self.btn_key_next.pack(side=tk.RIGHT)
+        self.trigger_ent = ttk.Entry(trigger_frame, textvariable=self.trigger_var, justify="center", state="readonly"); self.trigger_ent.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=4)
+        self.btn_key_next = ttk.Button(trigger_frame, text=">", width=3, command=self.next_key); self.btn_key_next.pack(side=tk.RIGHT)
 
-        # Bottom Bar
-        bottom_info_frame = ttk.Frame(main_frame)
-        bottom_info_frame.pack(side=tk.BOTTOM, fill=tk.X, pady=(15, 0))
-        self.btn_stealth = ttk.Button(bottom_info_frame, text=TRANSLATIONS[self.current_lang]["show_aim"], width=11, command=self.toggle_stealth)
-        self.btn_stealth.pack(side=tk.LEFT)
-        self.btn_vision = ttk.Button(bottom_info_frame, text="👁️", width=4, command=self.toggle_vision)
-        self.btn_vision.pack(side=tk.LEFT, padx=(5, 0))
-        self.lbl_ver_num = ttk.Label(bottom_info_frame, text=f"v{self.app_version}", font=("Segoe UI", 8, "bold"), foreground="#666666")
-        self.lbl_ver_num.pack(side=tk.RIGHT)
+        bottom_info_frame = ttk.Frame(main_frame); bottom_info_frame.pack(side=tk.BOTTOM, fill=tk.X, pady=(15, 0))
+        self.btn_stealth = ttk.Button(bottom_info_frame, text=TRANSLATIONS[self.current_lang]["show_aim"], width=11, command=self.toggle_stealth); self.btn_stealth.pack(side=tk.LEFT)
+        self.btn_vision = ttk.Button(bottom_info_frame, text="👁️", width=4, command=self.toggle_vision); self.btn_vision.pack(side=tk.LEFT, padx=(5, 0))
+        self.lbl_ver_num = ttk.Label(bottom_info_frame, text=f"v{self.app_version}", font=("Segoe UI", 8, "bold"), foreground="#666666"); self.lbl_ver_num.pack(side=tk.RIGHT)
 
-        self.configs_list = []
-        self.current_cfg_idx = 0
-        self.process = None
-        self.refresh_configs()
-        self.load_active_config()
-        self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
+        self.configs_list = []; self.current_cfg_idx = 0; self.process = None
+        self.refresh_configs(); self.load_active_config(); self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
+
+    def monitor_hotkeys(self):
+        # Master Hook for F4, Home, and Insert
+        hotkeys = {"F4": 0x73, "HOME": 0x24, "INSERT": 0x2D}
+        for name, vk in hotkeys.items():
+            state = win32api.GetAsyncKeyState(vk)
+            if state != 0: # Any bit set means recently pressed or held
+                if not self.keys_pressed.get(name):
+                    self.toggle_visibility()
+                    self.keys_pressed[name] = True
+            else: self.keys_pressed[name] = False
+        self.root.after(100, self.monitor_hotkeys)
+
+    def toggle_visibility(self):
+        if self.visible: self.root.attributes("-alpha", 0.0); self.root.withdraw(); self.visible = False
+        else: self.root.deiconify(); self.root.attributes("-alpha", 1.0); self.root.wm_attributes("-topmost", True); self.root.focus_force(); self.visible = True
+        if self.stealth_active: self.root.after(10, self.apply_stealth_capture)
 
     def apply_preset(self, level):
         presets = {
@@ -223,33 +167,20 @@ class ClassicAHKUI:
             "High":   {"aim_fov": 200.0, "sens_comp": 8.0, "smooth_in": 0.8, "smooth_out": 1.2, "confidence": 0.15}
         }
         data = presets.get(level)
-        if data:
-            self.update_entries(data)
-            save_active_config(self.get_current_values())
+        if data: self.update_entries(data); save_active_config(self.get_current_values())
 
-    def toggle_lang(self):
-        new_lang = "EN" if self.current_lang == "AR" else "AR"
-        self.set_lang(new_lang)
-
+    def toggle_lang(self): self.set_lang("EN" if self.current_lang == "AR" else "AR")
     def set_lang(self, lang):
-        self.current_lang = lang
-        self.btn_lang.config(text="AR" if lang == "EN" else "EN")
-        self.lbl_top_title.config(text=TRANSLATIONS[lang]["title"])
+        self.current_lang = lang; self.btn_lang.config(text="AR" if lang == "EN" else "EN"); self.lbl_top_title.config(text=TRANSLATIONS[lang]["title"])
         fields_text = TRANSLATIONS[lang]["fields"]
-        for i in range(len(self.keys)):
-            self.label_names[i].config(text=fields_text[i][0])
-            self.label_descs[i].config(text=fields_text[i][1])
-        self.lbl_profile.config(text=TRANSLATIONS[lang]["profile"])
-        self.lbl_trigger.config(text=TRANSLATIONS[lang]["trigger"])
-        if self.stealth_active:
-            self.btn_stealth.config(text=TRANSLATIONS[lang]["show_aim"])
-        else:
-            self.btn_stealth.config(text=TRANSLATIONS[lang]["hide_aim"])
+        for i in range(len(self.keys)): self.label_names[i].config(text=fields_text[i][0]); self.label_descs[i].config(text=fields_text[i][1])
+        self.lbl_profile.config(text=TRANSLATIONS[lang]["profile"]); self.lbl_trigger.config(text=TRANSLATIONS[lang]["trigger"])
+        self.btn_stealth.config(text=TRANSLATIONS[lang]["show_aim"] if self.stealth_active else TRANSLATIONS[lang]["hide_aim"])
 
     def apply_stealth_capture(self):
         try:
             hwnd = ctypes.windll.user32.GetParent(self.root.winfo_id())
-            if not hwnd: hwnd = self.root.winfo_id()
+            if not hwnd: hwnd = self.root.winfo_id();
             if hwnd: ctypes.windll.user32.SetWindowDisplayAffinity(hwnd, 0x11)
             self.stealth_active = True
         except: pass
@@ -257,7 +188,7 @@ class ClassicAHKUI:
     def disable_stealth_capture(self):
         try:
             hwnd = ctypes.windll.user32.GetParent(self.root.winfo_id())
-            if not hwnd: hwnd = self.root.winfo_id()
+            if not hwnd: hwnd = self.root.winfo_id();
             if hwnd: ctypes.windll.user32.SetWindowDisplayAffinity(hwnd, 0x00)
             self.stealth_active = False
         except: pass
@@ -266,99 +197,53 @@ class ClassicAHKUI:
         if self.stealth_active: self.disable_stealth_capture(); self.btn_stealth.config(text=TRANSLATIONS[self.current_lang]["hide_aim"])
         else: self.apply_stealth_capture(); self.btn_stealth.config(text=TRANSLATIONS[self.current_lang]["show_aim"])
 
-    def toggle_vision(self):
-        self.visualize_active = not self.visualize_active
-        self.btn_vision.config(text="👁️" if self.visualize_active else "🚫👁️")
-        save_active_config(self.get_current_values())
-        self.ensure_ai_running()
-
+    def toggle_vision(self): self.visualize_active = not self.visualize_active; self.btn_vision.config(text="👁️" if self.visualize_active else "🚫👁️"); save_active_config(self.get_current_values()); self.ensure_ai_running()
     def ensure_ai_running(self):
-        if self.process is None or not self.process.is_alive():
-            self.process = multiprocessing.Process(target=run_detection)
-            self.process.start()
-
-    def monitor_f4_safe(self):
-        f4_key = 0x73
-        is_pressed = win32api.GetAsyncKeyState(f4_key) & 0x8000
-        if is_pressed and not self.f4_was_pressed: self.toggle_visibility()
-        self.f4_was_pressed = is_pressed
-        self.root.after(100, self.monitor_f4_safe)
-
-    def toggle_visibility(self):
-        if self.visible: self.root.attributes("-alpha", 0.0); self.root.withdraw(); self.visible = False
-        else: self.root.deiconify(); self.root.attributes("-alpha", 1.0); self.root.wm_attributes("-topmost", True); self.root.focus_force(); self.visible = True;
-        if self.stealth_active: self.root.after(10, self.apply_stealth_capture)
-
+        if self.process is None or not self.process.is_alive(): self.process = multiprocessing.Process(target=run_detection); self.process.start()
     def refresh_configs(self):
-        files = glob.glob(os.path.join(CONFIG_DIR, "*.json"))
-        names = [os.path.basename(f).replace(".json", "") for f in files]
-        self.configs_list = names if names else ["Default"]
+        files = glob.glob(os.path.join(CONFIG_DIR, "*.json")); names = [os.path.basename(f).replace(".json", "") for f in files]; self.configs_list = names if names else ["Default"]
         if self.config_var.get() in self.configs_list: self.current_cfg_idx = self.configs_list.index(self.config_var.get())
         else: self.current_cfg_idx = 0; self.config_var.set(self.configs_list[self.current_cfg_idx])
-
     def next_config(self):
         if not self.configs_list: return
         self.current_cfg_idx = (self.current_cfg_idx + 1) % len(self.configs_list); self.config_var.set(self.configs_list[self.current_cfg_idx])
-
     def prev_config(self):
         if not self.configs_list: return
         self.current_cfg_idx = (self.current_cfg_idx - 1) % len(self.configs_list); self.config_var.set(self.configs_list[self.current_cfg_idx])
-
-    def next_key(self):
-        self.current_key_idx = (self.current_key_idx + 1) % len(self.trigger_keys_list); self.trigger_var.set(self.trigger_keys_list[self.current_key_idx])
-
-    def prev_key(self):
-        self.current_key_idx = (self.current_key_idx - 1) % len(self.trigger_keys_list); self.trigger_var.set(self.trigger_keys_list[self.current_key_idx])
-
+    def next_key(self): self.current_key_idx = (self.current_key_idx + 1) % len(self.trigger_keys_list); self.trigger_var.set(self.trigger_keys_list[self.current_key_idx])
+    def prev_key(self): self.current_key_idx = (self.current_key_idx - 1) % len(self.trigger_keys_list); self.trigger_var.set(self.trigger_keys_list[self.current_key_idx])
     def load_active_config(self):
         if os.path.exists(ACTIVE_CFG_PATH):
             try:
                 with open(ACTIVE_CFG_PATH, "r") as f: data = json.load(f); self.update_entries(data)
             except: pass
         else: self.update_entries(DEFAULT_CONFIG)
-
     def update_entries(self, data):
         for key, ent in self.entries.items(): ent.delete(0, tk.END); ent.insert(0, str(data.get(key, DEFAULT_CONFIG.get(key, ""))))
-        trigger_val = data.get("trigger_key", "XButton 2")
-        self.trigger_var.set(trigger_val)
+        trigger_val = data.get("trigger_key", "XButton 2"); self.trigger_var.set(trigger_val)
         if trigger_val in self.trigger_keys_list: self.current_key_idx = self.trigger_keys_list.index(trigger_val)
-
     def get_current_values(self):
         vals = {}
         for key, ent in self.entries.items():
             try: vals[key] = float(ent.get())
             except: vals[key] = DEFAULT_CONFIG.get(key, 0)
-        selected_key_name = self.trigger_var.get()
-        vals["trigger_key"] = selected_key_name 
-        vals["trigger_key_hex"] = hex(self.key_map.get(selected_key_name, 0x06))
-        vals["visualize"] = self.visualize_active
-        vals["enable_aim"] = self.aimbot_running
-        return vals
-
+        selected_key_name = self.trigger_var.get(); vals["trigger_key"] = selected_key_name; vals["trigger_key_hex"] = hex(self.key_map.get(selected_key_name, 0x06)); vals["visualize"] = self.visualize_active; vals["enable_aim"] = self.aimbot_running; return vals
     def save_config(self):
-        name = self.config_var.get().strip() or "MyConfig"
-        vals = self.get_current_values()
-        cfg_path = os.path.join(CONFIG_DIR, f"{name}.json")
+        name = self.config_var.get().strip() or "MyConfig"; vals = self.get_current_values(); cfg_path = os.path.join(CONFIG_DIR, f"{name}.json")
         with open(cfg_path, "w") as f: json.dump(vals, f, indent=4)
-        save_active_config(vals)
-        self.refresh_configs(); self.config_var.set(name)
+        save_active_config(vals); self.refresh_configs(); self.config_var.set(name)
         if self.process and self.process.is_alive(): self.stop_ai(); self.root.after(300, self.start_ai)
-
     def load_config(self):
-        name = self.config_var.get().strip()
-        cfg_path = os.path.join(CONFIG_DIR, f"{name}.json")
+        name = self.config_var.get().strip(); cfg_path = os.path.join(CONFIG_DIR, f"{name}.json")
         if os.path.exists(cfg_path):
             with open(cfg_path, "r") as f: data = json.load(f); self.update_entries(data); save_active_config(data)
             if self.process and self.process.is_alive(): self.stop_ai(); self.root.after(300, self.start_ai)
         else: messagebox.showerror("Error", "Save file not found!")
-
     def on_closing(self):
         try:
             self.stop_ai()
-            for child in multiprocessing.active_children():
-                pid = child.pid
-                subprocess.call(['taskkill', '/F', '/T', '/PID', str(pid)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                child.kill()
+            import subprocess
+            for child in multiprocessing.active_children(): pid = child.pid; subprocess.call(['taskkill', '/F', '/T', '/PID', str(pid)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL); child.kill()
         except: pass
         self.root.destroy(); os._exit(0) 
 
