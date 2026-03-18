@@ -34,4 +34,4 @@ echo.
 echo ==========================================
 echo [OK] Synchronization Complete.
 echo ==========================================
-pause
+timeout /t 2
