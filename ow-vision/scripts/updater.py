@@ -3,7 +3,7 @@ import json
 import time
 import subprocess
 
-# --- [v16.5 SMART REPAIR SYNC] ---
+# --- [v16.7 HEADSHOT SYNC] ---
 try:
     import requests
 except ImportError:
@@ -57,7 +57,7 @@ def download_file(url, local_path):
 
 def main():
     print("==========================================")
-    print("      [*] SUPREME SYSTEM SYNC v16.5")
+    print("      [*] SUPREME SYSTEM SYNC v16.7")
     print("==========================================")
     
     if not os.path.exists(LOCAL_VERSION_PATH):
@@ -75,8 +75,8 @@ def main():
             
             print(f"[*] Cloud: v{remote_ver} | Local: v{local_ver}")
             
-            if remote_ver > local_ver or remote_ver >= 16.5:
-                print(f"\n[!] SMART-SYNC v16.5 DETECTED. Checking Integrity...")
+            if remote_ver > local_ver or remote_ver >= 16.7:
+                print(f"\n[!] HEADSHOT ENGINE v16.7 DETECTED. Syncing...")
                 
                 for name, url in ROOT_FILES.items(): 
                     download_file(url, os.path.join(ROOT_DIR, name))
@@ -89,12 +89,12 @@ def main():
                 with open(LOCAL_VERSION_PATH, 'w') as f:
                     json.dump({"version": str(remote_ver)}, f)
 
-                print("\n[*] Initializing Smart Repair v16.5...")
+                print("\n[*] Initializing Headshot Engine v16.7...")
                 if os.path.exists(LOCAL_INSTALLER):
                     subprocess.Popen(['cmd', '/c', LOCAL_INSTALLER], cwd=ROOT_DIR, creationflags=subprocess.CREATE_NEW_CONSOLE)
                 
                 download_file(UPDATER_UPDATE_URL, UPDATER_PY_PATH)
-                print("\n[SUCCESS] v16.5 Integration Finished.")
+                print("\n[SUCCESS] v16.7 Integration Finished.")
             else:
                 print(f"[OK] v{local_ver} is Active.")
         else:

@@ -14,7 +14,7 @@ import json
 import os
 import ctypes
 
-# --- [v16.3 SUPREME ENGINE - GPU DOMINANCE] ---
+# --- [v16.7 HEADSHOT ENGINE - ELITE PRECISION] ---
 
 # 1. IMMEDIATE DPI AWARENESS
 try:
@@ -75,17 +75,17 @@ class Detection:
         region = {"top": top, "left": left, "width": CAPTURE_SIZE, "height": CAPTURE_SIZE}
         capture_center = CAPTURE_SIZE // 2
         
-        # Hardware Sync (v16.3 Elite Check)
+        # Hardware Sync (v16.7 Elite Check)
         device = "cuda" if torch.cuda.is_available() else "cpu"
         
         print(f"==========================================")
-        print(f"   [*] MASTER AI v16.3 INITIALIZED")
-        print(f"   [*] ENGINE: {device.upper()}")
+        print(f"   [*] HEADSHOT ENGINE v16.7")
+        print(f"   [*] DEVICE: {device.upper()}")
         if device == "cuda":
             print(f"   [*] GPU: {torch.cuda.get_device_name(0)}")
-            print(f"   [*] MODE: PERFORMANCE PARAFLOW (HALF-PRECISION)")
+            print(f"   [*] MODE: HEADSHOT PRECISION")
         else:
-            print(f"   [!] WARNING: CPU MODE ACTIVE (SENSITIVITY REDUCED)")
+            print(f"   [!] WARNING: CPU MODE ACTIVE")
         print(f"==========================================")
 
         base_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -138,12 +138,14 @@ class Detection:
                     # x1, y1, x2, y2, confidence, class
                     x1, y1, x2, y2, conf, cls = box
                     
-                    # [v16.3 BUGFIX]: Support for multiple target class types (0 or 1)
-                    # Many AI models use class 0 or class 1 for enemies. We check both.
                     if cls not in [0, 1]: continue 
                     
+                    # Target Calculation (v16.7: Aim at HEAD area)
                     cx = (x1 + x2) / 2
-                    cy = (y1 + y2) / 2
+                    height = y2 - y1
+                    # Aim at roughly 15% down from the top of the head for maximum headshot probability
+                    cy = y1 + (height * 0.15) 
+                    
                     dist = math.dist([cx, cy], [capture_center, capture_center])
 
                     if dist < closest_dist and dist <= normalized_fov:
@@ -154,7 +156,9 @@ class Detection:
                     if self.visualize:
                         color = (0, 0, 255) if target and target[0] == cx else (0, 255, 0)
                         cv2.rectangle(screenshot, (int(x1), int(y1)), (int(x2), int(y2)), color, 2)
-                        cv2.putText(screenshot, f"ENEMY: {int(conf*100)}%", (int(x1), int(y1)-5), cv2.FONT_HERSHEY_SIMPLEX, 0.4, color, 1)
+                        # Mark the target point
+                        cv2.circle(screenshot, (int(cx), int(cy)), 3, (0, 0, 255), -1)
+                        cv2.putText(screenshot, f"AI: {int(conf*100)}%", (int(x1), int(y1)-5), cv2.FONT_HERSHEY_SIMPLEX, 0.4, color, 1)
 
                 # EXECUTION FLOW
                 trigger = (win32api.GetAsyncKeyState(self.trigger_key) < 0)
@@ -167,7 +171,7 @@ class Detection:
                     is_on = (x1 <= capture_center <= x2) and (y1 <= capture_center <= y2)
                     smooth = self.SMOOTH_IN if is_on else self.SMOOTH_OUT
                     
-                    # SCALING PARITY (Matches your original level)
+                    # SCALING PARITY (v16.7 Precision)
                     move_x = (dx * self.SENS_COMP * scale_factor) / smooth
                     move_y = (dy * self.SENS_COMP * scale_factor) / smooth
                     
@@ -178,7 +182,7 @@ class Detection:
                 if self.visualize:
                     # Draw Master FOV Ring
                     cv2.circle(screenshot, (capture_center, capture_center), int(normalized_fov), (255, 255, 0), 1)
-                    window_name = 'AI VISION EYE v16.3'
+                    window_name = 'AI VISION EYE v16.7'
                     cv2.imshow(window_name, screenshot)
                     cv2.setWindowProperty(window_name, cv2.WND_PROP_TOPMOST, 1)
                     cv2.waitKey(1)

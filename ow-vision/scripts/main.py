@@ -118,12 +118,12 @@ class ClassicAHKUI:
         self.aimbot_running = False
         
         # تحميل رقم الإصدار
-        self.app_version = "16.5"
+        self.app_version = "16.7"
         try:
             v_path = os.path.join(os.path.dirname(__file__), "version.json")
             if os.path.exists(v_path):
                 with open(v_path, 'r') as f:
-                    self.app_version = json.load(f).get("version", "1.9")
+                    self.app_version = json.load(f).get("version", "16.7")
         except: pass
         
         main_frame = ttk.Frame(root, padding="15 15 15 15")
