@@ -24,58 +24,48 @@ python --version >nul 2>&1
 if %errorlevel% == 0 (
     echo [+] Fast Discovery: System Python found active.
     set "found_any=1"
-    set "p_path=python"
     
-    echo [>] TARGETING ACTIVE: "!p_path!"
+    :: Get Absolute Path
+    for /f "delims=" %%i in ('where python') do set "ABS_PY=%%i"
+    set "ABS_PYW=!ABS_PY:python.exe=pythonw.exe!"
+    echo !ABS_PYW! > "%~dp0python_path.txt"
     
-    :: Save path for the VBS runner
-    set "p_pathw=!p_path:python.exe=pythonw.exe!"
-    for /f "delims=" %%i in ('where !p_path!') do set "FULL_PY=%%i"
-    set "FULL_PYW=!FULL_PY:python.exe=pythonw.exe!"
-    echo !FULL_PYW! > "%~dp0python_path.txt"
-    
-    "!p_path!" -m pip install --upgrade pip --quiet
-    "!p_path!" -m pip install --upgrade ultralytics mss opencv-python numpy pandas pyautogui pywin32 requests --no-cache-dir --quiet
-    "!p_path!" -m pip install --upgrade torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121 --quiet
+    echo [>] TARGETING ACTIVE: "!ABS_PYW!"
+    "!ABS_PY!" -m pip install --upgrade pip --quiet
+    "!ABS_PY!" -m pip install --upgrade ultralytics mss opencv-python numpy pandas pyautogui pywin32 requests --no-cache-dir --quiet
+    "!ABS_PY!" -m pip install --upgrade torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121 --quiet
     echo [OK] Sync Complete.
     goto :sync_launchers
 )
 
-:: [2] Common Paths Check (If active python failed)
-echo [!] Active Python not found. Searching common paths...
-for %%d in ("C:\Program Files\Python312" "C:\Program Files\Python311" "%LocalAppData%\Programs\Python\Python312" "%LocalAppData%\Programs\Python\Python311") do (
+:: [2] Advanced Scan (Common + Registry-style Paths)
+echo [!] Scanning environment for Python 3.11, 3.12, 3.13, 3.14...
+for %%d in ("C:\Program Files\Python312" "C:\Program Files\Python313" "C:\Program Files\Python314" "%LocalAppData%\Programs\Python\Python312" "%LocalAppData%\Programs\Python\Python313" "%LocalAppData%\Programs\Python\Python314") do (
     if exist "%%~d\python.exe" (
         set "found_any=1"
         echo [+] Found at: "%%~d\python.exe"
-        
-        :: Save path for the VBS runner
         echo %%~d\pythonw.exe > "%~dp0python_path.txt"
-        
         "%%~d\python.exe" -m pip install --upgrade pip --quiet
         "%%~d\python.exe" -m pip install --upgrade ultralytics mss opencv-python numpy pandas pyautogui pywin32 requests --quiet
         goto :sync_launchers
     )
 )
 
-:: [3] Hard Search (Last resort before installing)
+:: [3] Deep Discovery
 if "!found_any!"=="0" (
-    echo [+] Performing deep search (might take a moment)...
+    echo [+] Deep Search for any linked Python instance...
     for /f "delims=" %%p in ('where python 2^>nul') do (
         set "found_any=1"
-        echo [+] Found target: "%%p"
-        
-        :: Save path for the VBS runner
-        set "p_pathw=%%p"
-        set "p_pathw=!p_pathw:python.exe=pythonw.exe!"
-        echo !p_pathw! > "%~dp0python_path.txt"
-        
+        set "TARGET_PY=%%p"
+        set "TARGET_PYW=!TARGET_PY:python.exe=pythonw.exe!"
+        echo !TARGET_PYW! > "%~dp0python_path.txt"
         "%%p" -m pip install --upgrade pip --quiet
         "%%p" -m pip install --upgrade ultralytics mss opencv-python numpy pandas pyautogui pywin32 requests --quiet
         goto :sync_launchers
     )
 )
 
-:: [4] Automated Install
+:: [4] Automated Install (Last Resort)
 if "!found_any!"=="0" (
     echo [!] PYTHON MISSING. Starting Auto-Installation...
     winget install -e --id Python.Python.3.12 --silent --accept-package-agreements
@@ -83,6 +73,8 @@ if "!found_any!"=="0" (
     pause
     exit /b
 )
+
+:sync_launchers
 
 :sync_launchers
 
@@ -105,7 +97,7 @@ curl -L -s "!BASE_URL!/START_AIMBOT.vbs" -o "%~dp0START_AIMBOT.vbs"
 echo.
 echo ==========================================
 echo       [SUCCESS] SYSTEM IS FULLY READY!
-echo             VERSION: v6.5 MEGA
-echo   ALL ENGINES, LIBRARIES, AND LAUNCHERS SYNCED.
+echo             VERSION: v7.0 MASTER
+echo   ENVIRONMENT LOCKED - LAUNCHERS READY.
 echo ==========================================
 pause

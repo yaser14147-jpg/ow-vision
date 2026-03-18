@@ -6,7 +6,7 @@ StrPath = fso.GetParentFolderName(WScript.ScriptFullName)
 MainPyPath = fso.BuildPath(StrPath, "ow-vision\scripts\main.py")
 PathFile = fso.BuildPath(StrPath, "python_path.txt")
 
-' --- [2] FIND PYTHONW.EXE (REFINED BRUTE FORCE) ---
+' --- [2] FIND PYTHONW.EXE (ULTIMATE DEEP SEARCH v7.0) ---
 Sub FindPythonW()
     On Error Resume Next
     FoundPy = ""
@@ -22,22 +22,35 @@ Sub FindPythonW()
         End If
     End If
 
-    ' Priority 2: Check if in PATH directly
+    ' Priority 2: Check if 'pythonw.exe' is in PATH (Universal)
     Err.Clear
     WshShell.Run "pythonw.exe --version", 0, True
     If Err.Number = 0 Then FoundPy = "pythonw.exe": Exit Sub
 
-    ' Priority 3: Check common locations (Brute Force)
-    Locations = Array("C:\Program Files\Python312\pythonw.exe", _
-                      "C:\Program Files\Python311\pythonw.exe", _
-                      WshShell.ExpandEnvironmentStrings("%LocalAppData%\Programs\Python\Python312\pythonw.exe"), _
-                      WshShell.ExpandEnvironmentStrings("%LocalAppData%\Programs\Python\Python311\pythonw.exe"), _
-                      WshShell.ExpandEnvironmentStrings("%LOCALAPPDATA%\Python\pythoncore-3.14-64\pythonw.exe"), _
-                      "C:\Python312\pythonw.exe", _
-                      "C:\Python311\pythonw.exe")
+    ' Priority 3: Check common manual locations (Recursive Discovery)
+    Dim CommonPaths
+    CommonPaths = Array("C:\Program Files\Python312", "C:\Program Files\Python313", "C:\Program Files\Python314", _
+                        WshShell.ExpandEnvironmentStrings("%LocalAppData%\Programs\Python"), _
+                        WshShell.ExpandEnvironmentStrings("%LocalAppData%\Python"), _
+                        "C:\Python312", "C:\Python311")
     
-    For Each Loc In Locations
-        If fso.FileExists(Loc) Then FoundPy = Loc: Exit Sub
+    For Each RootPath In CommonPaths
+        If fso.FolderExists(RootPath) Then
+            ' Check main folder
+            If fso.FileExists(fso.BuildPath(RootPath, "pythonw.exe")) Then 
+                FoundPy = fso.BuildPath(RootPath, "pythonw.exe")
+                Exit Sub
+            End If
+            ' Scan subfolders (for things like 'pythoncore-3.14-64')
+            Set RootFolder = fso.GetFolder(RootPath)
+            For Each SubF In RootFolder.SubFolders
+                TestFile = fso.BuildPath(SubF.Path, "pythonw.exe")
+                If fso.FileExists(TestFile) Then
+                    FoundPy = TestFile
+                    Exit Sub
+                End If
+            Next
+        End If
     Next
     
     ' Priority 4: Try 'pyw.exe' (Official Python Launcher)
@@ -56,12 +69,11 @@ End If
 FindPythonW
 
 If FoundPy <> "" Then
-    ' Run main.py hidden
-    ' Using double quotes for both python and main.py path
+    ' Run main.py hidden 
+    ' Force use of FoundPy as the absolute runner
     WshShell.Run """" & FoundPy & """ """ & MainPyPath & """", 0, False
 Else
     MsgBox "Could not find Python (pythonw.exe)!" & vbCrLf & _
-           "Please run INSTALL_LIBRARIES.bat as Administrator first." & vbCrLf & _
            "Your system seems to have a custom Python installation." & vbCrLf & _
-           "Tried common paths but failed.", 16, "Fatal Environment Error"
+           "Please run INSTALL_LIBRARIES.bat as Administrator once to link the system.", 16, "Fatal Environment Error"
 End If
