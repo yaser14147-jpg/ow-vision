@@ -4,7 +4,7 @@ import os
 import shutil
 import time
 
-# --- System Synchronization Settings (v5.4) ---
+# --- System Synchronization Settings (v6.0 Official Master) ---
 USERNAME = "yaser14147-jpg"
 REPO = "ow-vision"
 BRANCH = "main"
