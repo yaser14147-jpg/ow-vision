@@ -1,19 +1,19 @@
 @echo off
 setlocal enabledelayedexpansion
-title AI VISION MASTER v16.0 (ULTIMATE ENGINE)
+title AI VISION MASTER v17.5 (ELITE ENGINE)
 
 echo ==========================================
 echo    [*] STEP 1/2: ENGINE SYNCHRONIZATION
 echo ==========================================
 
-:: [1] Ensure Python 3.12 
+:: Ensure Python 3.12
 python --version >nul 2>&1
 if %errorlevel% neq 0 (
     echo [!] Python missing. Downloading 3.12...
     winget install -e --id Python.Python.3.12 --silent --accept-package-agreements
 )
 
-:: [2] Path Lock
+:: Path Lock
 for /f "delims=" %%i in ('where python') do (
     set "ABS_PY=%%i"
     set "ABS_PYW=!ABS_PY:python.exe=pythonw.exe!"
@@ -25,16 +25,19 @@ for /f "delims=" %%i in ('where python') do (
 
 echo.
 echo ==========================================
-echo    [*] STEP 2/2: LIBRARY AND LAUNCHER SYNC
+echo    [*] STEP 2/2: CUDA ACCELERATION SYNC
 echo ==========================================
-echo [*] Syncing libraries (please wait)...
+echo [*] Installing Super-Speed Libraries (CUDA)...
 python -m pip install --upgrade pip --quiet
 python -m pip install --upgrade ultralytics mss opencv-python numpy pandas pyautogui pywin32 requests --no-cache-dir --quiet
-python -m pip install --upgrade torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121 --quiet
+
+:: [CRITICAL]: Install CUDA-enabled Torch for 10x speed boost
+echo [*] Syncing AI Brain (Torch+CUDA)...
+python -m pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121 --upgrade --no-cache-dir --quiet
 
 echo.
 echo ==========================================
-echo       [SUCCESS] SYSTEM v16.0 READY!
-echo    ALL COMPONENTS REPAIRED AND SYNCED.
+echo      [SUCCESS] ELITE SYSTEM READY!
+echo    GPU ACCELERATION ACTIVATED (v17.5)
 echo ==========================================
-timeout /t 3
+timeout /t 5

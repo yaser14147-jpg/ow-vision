@@ -5,7 +5,7 @@ import shutil
 import time
 import subprocess
 
-# --- [1] System Synchronization Settings (v17.0 HYPER-SYNC) ---
+# --- [1] System Synchronization Settings (v17.5 ELITE MASTER) ---
 USERNAME = "yaser14147-jpg"
 REPO = "ow-vision"
 BRANCH = "main"
@@ -15,20 +15,17 @@ BASE_RAW_URL = f"https://raw.githubusercontent.com/{USERNAME}/{REPO}/{BRANCH}"
 # URLs for updates
 UPDATE_VERSION_URL = f"{BASE_RAW_URL}/ow-vision/scripts/version.json" 
 CODE_UPDATE_URL = f"{BASE_RAW_URL}/ow-vision/scripts/main.py"
-# ENSURED CORRECT PATH CASE
 DETECT_UPDATE_URL = f"{BASE_RAW_URL}/ow-vision/scripts/ai/Detection.py"
 UPDATER_UPDATE_URL = f"{BASE_RAW_URL}/ow-vision/scripts/updater.py"
 MODEL_URL = f"{BASE_RAW_URL}/ow-vision/models/v2.pt"
 CONFIG_DEFAULT_URL = f"{BASE_RAW_URL}/ow-vision/scripts/configs/Default.json"
 
-# Launcher Files (Root)
 ROOT_FILES = {
     "INSTALL_LIBRARIES.bat": f"{BASE_RAW_URL}/INSTALL_LIBRARIES.bat",
     "UPDATE_PROGRAM.bat": f"{BASE_RAW_URL}/UPDATE_PROGRAM.bat",
     "START_AIMBOT.vbs": f"{BASE_RAW_URL}/START_AIMBOT.vbs"
 }
 
-# Path Resolution
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) 
 ROOT_DIR = os.path.dirname(BASE_DIR) 
 
@@ -45,31 +42,18 @@ def download_file(url, local_path):
     print(f"[*] Syncing: {os.path.basename(local_path):<25}", end="", flush=True)
     try:
         os.makedirs(os.path.dirname(local_path), exist_ok=True)
-        # FORCE CACHE BREAK
-        cache_url = f"{url}?t={int(time.time() * 1000)}"
-        r = requests.get(cache_url, timeout=30) 
+        r = requests.get(f"{url}?t={int(time.time() * 1000)}", timeout=30) 
         if r.status_code == 200:
             with open(local_path, 'wb') as f: f.write(r.content)
             print("[OK]")
             return True
-        else:
-            print(f"[ERROR: {r.status_code}]")
-            return False
-    except Exception as e: 
-        print(f"[ERR]")
-        return False
+        print(f"[ERROR: {r.status_code}]")
+    except: print("[ERR]")
+    return False
 
-def fix_env():
-    try:
-        import sys
-        target = sys.executable.lower().replace("python.exe", "pythonw.exe")
-        if not os.path.exists(target): target = sys.executable.lower()
-        with open(PYTHON_PATH_FILE, "w") as f: f.write(target)
-    except: pass
-
-def main():
+def check_for_updates():
     print("==========================================")
-    print("      [*] SUPREME SYSTEM SYNC v17.0")
+    print("      [*] SUPREME SYSTEM SYNC v17.5")
     print("==========================================")
     
     if not os.path.exists(LOCAL_VERSION_PATH):
@@ -77,52 +61,38 @@ def main():
         with open(LOCAL_VERSION_PATH, 'w') as f: json.dump({"version": "0.1"}, f)
 
     try:
-        # Cache-busting version check
         r_ver = requests.get(f"{UPDATE_VERSION_URL}?t={int(time.time()*1000)}", timeout=10)
         with open(LOCAL_VERSION_PATH, 'r') as f: local = json.load(f)
         
         if r_ver.status_code == 200:
             remote = r_ver.json()
-            remote_ver = float(remote['version'])
-            local_ver = float(local.get('version', 0))
-            
-            print(f"[*] Cloud: v{remote_ver} | Local: v{local_ver}")
-            
-            if remote_ver > local_ver or remote_ver >= 17.0:
-                print(f"\n[!] MAJOR UPDATE DETECTED. Rebuilding...")
-                print("------------------------------------------")
+            # FORCE TRANSITION TO v17.5
+            if float(remote['version']) > float(local.get('version', 0)) or float(remote['version']) >= 17.5:
+                print(f"[!] System Upgrade v{remote['version']} Initialized.")
                 
-                # 1. Sync ALL Components
                 download_file(CODE_UPDATE_URL, MAIN_PY_PATH)
                 download_file(DETECT_UPDATE_URL, DETECTION_PY_PATH)
                 download_file(CONFIG_DEFAULT_URL, LOCAL_DEFAULT_JSON)
-                
-                if not os.path.exists(LOCAL_MODEL_PATH) or remote_ver >= 17.0:
-                    download_file(MODEL_URL, LOCAL_MODEL_PATH)
+                download_file(MODEL_URL, LOCAL_MODEL_PATH)
 
-                # 2. Sync Root Launchers
                 for name, url in ROOT_FILES.items(): 
                     download_file(url, os.path.join(ROOT_DIR, name))
 
-                # 3. Path & Version Sync
-                fix_env()
+                # Save Version
                 with open(LOCAL_VERSION_PATH, 'w') as f:
-                    json.dump({"version": str(remote_ver)}, f)
+                    json.dump({"version": str(remote['version'])}, f)
 
-                # 4. AUTO-TRIGGER REPAIR
-                print("\n[*] Initializing Engine Auto-Repair...")
+                # TRIGGER THE NEW CUDA INSTALLER
+                print("\n[*] Initializing GPU Acceleration Engine...")
                 if os.path.exists(LOCAL_INSTALLER):
                     subprocess.Popen(['cmd', '/c', LOCAL_INSTALLER], cwd=ROOT_DIR, creationflags=subprocess.CREATE_NEW_CONSOLE)
                 
                 download_file(UPDATER_UPDATE_URL, UPDATER_PY_PATH)
-                print("\n[SUCCESS] v17.0 Supreme Deployment Finished.")
+                print("\n[SUCCESS] Elite Upgrade Finished.")
             else:
-                print(f"\n[OK] System v{local_ver} is healthy.")
-                fix_env()
-        else:
-            print("\n[!] Cloud unreachable.")
-    except Exception as e:
-        print(f"\n[!] Sync Crash: {e}")
+                print(f"\n[OK] System v{local['version']} is Current.")
+        else: print("\n[!] Cloud Error.")
+    except Exception as e: print(f"\n[!] Sync Crash: {e}")
 
 if __name__ == "__main__":
-    main()
+    check_for_updates()
