@@ -1,4 +1,8 @@
-title AI VISION ULTIMATE SYNC v9.0
+@echo off
+setlocal enabledelayedexpansion
+title AI VISION ULTIMATE SYNC v9.5
+
+:: [!] CRITICAL FIX: ENABLEDELAYEDEXPANSION RESTORED
 
 echo ==========================================
 echo    [*] Searching for System Updates...
